@@ -21,3 +21,14 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+.idea/encodings.xml
+.idea/workspace.xml
+WonderRPC_common/src/test/
+WonderRPC_common/target/classes/application.yml
+WonderRPC_common/target/generated-sources/
+WonderRPC_core/src/test/
+WonderRPC_core/target/WonderRPC_core-1.0-SNAPSHOT.jar.original
+WonderRPC_core/target/classes/META-INF/
+WonderRPC_core/target/generated-sources/
+WonderRPC_core/target/maven-archiver/
+WonderRPC_core/target/maven-status/
