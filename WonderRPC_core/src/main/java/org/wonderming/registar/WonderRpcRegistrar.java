@@ -2,8 +2,10 @@ package org.wonderming.registar;
 
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
@@ -41,11 +43,15 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
     private static final String CLIENTS = "clients";
 
     static {
+        System.out.println("***************************************");
+        System.out.println("***************************************");
         System.out.println(" __        __              _           ");
         System.out.println(" \\ \\      / /__  _ __   __| | ___ _ __ ");
         System.out.println("  \\ \\ /\\ / / _ \\| '_ \\ / _` |/ _ \\ '__|");
         System.out.println("   \\ V  V / (_) | | | | (_| |  __/ |   ");
         System.out.println("    \\_/\\_/ \\___/|_| |_|\\__,_|\\___|_|  ");
+        System.out.println("***************************************");
+        System.out.println("***************************************");
     }
 
     private ResourceLoader resourceLoader;
@@ -106,6 +112,7 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
                     final AnnotationMetadata annotationMetadata = beanDefinition.getMetadata();
                     Assert.isTrue(annotationMetadata.isInterface(),"@WonderRpcClient can only be specified on an interface");
                     final Map<String, Object> attributes = annotationMetadata.getAnnotationAttributes(WonderRpcClient.class.getCanonicalName());
+                    assert attributes != null;
                     registerWonderClient(registry,annotationMetadata,attributes);
                 }
             });
@@ -113,9 +120,19 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
     }
 
     private void registerWonderClient(BeanDefinitionRegistry registry, AnnotationMetadata annotationMetadata, Map<String, Object> attributes){
+        String className = annotationMetadata.getClassName();
         final BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(WonderRpcClientFactoryBean.class);
         definition.addPropertyValue("name",attributes.get("name"));
+        try {
+            definition.addPropertyValue("type",Class.forName(className));
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
+        final AbstractBeanDefinition beanDefinition = definition.getBeanDefinition();
+        beanDefinition.setPrimary((Boolean) attributes.get("primary"));
+        BeanDefinitionHolder holder = new BeanDefinitionHolder(beanDefinition, className, new String[] {className});
+        BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
     }
 
     private ClassPathScanningCandidateComponentProvider getScanner() {
