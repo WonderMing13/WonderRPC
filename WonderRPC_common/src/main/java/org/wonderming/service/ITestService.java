@@ -8,8 +8,8 @@ import org.wonderming.annotation.WonderRpcClient;
  * @author: wangdeming
  * @date: 2019-09-09 10:34
  **/
-@WonderRpcClient(name = "myWonder")
-public interface TestService {
+@WonderRpcClient(name = "testWonder")
+public interface ITestService {
 
-    public String getTest();
+    public void getTest();
 }

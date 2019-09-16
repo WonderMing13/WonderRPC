@@ -1,3 +1,6 @@
-hello:
-  msg: lets Go
-  show: true
+#hello:
+#  msg: lets Go
+#  show: true
+
+server:
+  port: 9090

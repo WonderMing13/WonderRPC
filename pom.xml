@@ -10,6 +10,7 @@
     <modules>
         <module>WonderRPC_core</module>
         <module>WonderRPC_common</module>
+        <module>WonderRPC_test</module>
     </modules>
 
     <properties>

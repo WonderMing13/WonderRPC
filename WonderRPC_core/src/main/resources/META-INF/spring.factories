@@ -1,1 +1,1 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration = org.wonderming.entity.HelloAutoConfiguration
+#org.springframework.boot.autoconfigure.EnableAutoConfiguration = org.wonderming.entity.HelloAutoConfiguration

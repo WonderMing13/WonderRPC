@@ -1,5 +1,7 @@
 package org.wonderming.registar;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -36,7 +38,7 @@ import java.util.*;
  * @author: wangdeming
  * @date: 2019-09-08 17:24
  **/
-public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware, EnvironmentAware {
+public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware, BeanClassLoaderAware, EnvironmentAware {
 
     private static final String BASE_PACKAGES = "basePackages";
 
@@ -58,6 +60,8 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
 
     private Environment environment;
 
+    private ClassLoader classLoader;
+
     private WonderRpcRegistrar(){
 
     }
@@ -73,10 +77,20 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
     }
 
     @Override
+    public void setBeanClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
+
+    @Override
     public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
         registerWonderClients(metadata,registry);
     }
 
+    /**
+     * 处理注解的扫描包
+     * @param metadata AnnotationMetadata
+     * @param registry BeanDefinitionRegistry
+     */
     private void registerWonderClients(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
         ClassPathScanningCandidateComponentProvider scanner = getScanner();
         scanner.setResourceLoader(this.resourceLoader);
@@ -119,11 +133,18 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
         });
     }
 
+    /**
+     * 将接口类注册成BeanDefinition,装载到IOC容器中
+     * @param registry BeanDefinitionRegistry
+     * @param annotationMetadata AnnotationMetadata
+     * @param attributes Map<String, Object>
+     */
     private void registerWonderClient(BeanDefinitionRegistry registry, AnnotationMetadata annotationMetadata, Map<String, Object> attributes){
         String className = annotationMetadata.getClassName();
         final BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(WonderRpcClientFactoryBean.class);
         definition.addPropertyValue("name",attributes.get("name"));
         try {
+            //Java反射获取类
             definition.addPropertyValue("type",Class.forName(className));
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -131,15 +152,31 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
         definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
         final AbstractBeanDefinition beanDefinition = definition.getBeanDefinition();
         beanDefinition.setPrimary((Boolean) attributes.get("primary"));
+        definition.addPropertyValue("methodInterceptor",getInterceptor());
         BeanDefinitionHolder holder = new BeanDefinitionHolder(beanDefinition, className, new String[] {className});
-        BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
+        BeanDefinitionReaderUtils.registerBeanDefinition(holder,registry);
     }
 
+    /**
+     * 判断扫描的是不是独立的Component或者是接口
+     * @return ClassPathScanningCandidateComponentProvider
+     */
     private ClassPathScanningCandidateComponentProvider getScanner() {
         return new ClassPathScanningCandidateComponentProvider(false, this.environment) {
             @Override
             protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
-                return beanDefinition.getMetadata().isIndependent() && beanDefinition.getMetadata().isInterface();
+                if (beanDefinition.getMetadata().isIndependent()){
+                    if (beanDefinition.getMetadata().isInterface()){
+                        try {
+                            Class<?> target = ClassUtils.forName(beanDefinition.getMetadata().getClassName(),WonderRpcRegistrar.this.classLoader);
+                            return !target.isAnnotation();
+                        } catch (ClassNotFoundException e) {
+                            this.logger.error( "Could not load target class: " + beanDefinition.getMetadata().getClassName(),e);
+                        }
+                    }
+                    return true;
+                }
+                return false;
             }
         };
     }
@@ -158,6 +195,7 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
         }
         return basePackages;
     }
+
 
     private static class AllTypeFilter implements TypeFilter {
 
@@ -180,5 +218,9 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
 
             return true;
         }
+    }
+
+    private MethodInterceptor getInterceptor(){
+        return new WonderRPCInterceptor();
     }
 }
