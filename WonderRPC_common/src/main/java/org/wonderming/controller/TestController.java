@@ -9,10 +9,8 @@ import org.wonderming.service.ITestService;
 
 
 /**
- * @className: TestController
- * @package: org.wonderming.controller
- * @author: wangdeming
- * @date: 2019-09-06 15:16
+ * @author wangdeming
+ * @date 2019-09-06 15:16
  **/
 @RestController
 public class TestController {

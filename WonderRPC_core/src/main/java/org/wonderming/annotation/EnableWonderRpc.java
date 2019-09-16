@@ -6,10 +6,8 @@ import org.wonderming.registar.WonderRpcRegistrar;
 import java.lang.annotation.*;
 
 /**
- * @className: EnableWonderRpc
- * @package: org.wonderming.annotation
- * @author: wangdeming
- * @date: 2019-09-08 17:19
+ * @author wangdeming
+ * @date 2019-09-08 17:19
  **/
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

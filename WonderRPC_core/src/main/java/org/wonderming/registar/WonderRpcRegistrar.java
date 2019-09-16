@@ -33,10 +33,8 @@ import java.util.*;
 
 /**
  * 模仿Feign客户端 重写一份自动扫描注解
- * @className: WonderRpcRegistrar
- * @package: org.wonderming.registar
- * @author: wangdeming
- * @date: 2019-09-08 17:24
+ * @author wangdeming
+ * @date 2019-09-08 17:24
  **/
 public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware, BeanClassLoaderAware, EnvironmentAware {
 
@@ -143,6 +141,8 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
         String className = annotationMetadata.getClassName();
         final BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(WonderRpcClientFactoryBean.class);
         definition.addPropertyValue("name",attributes.get("name"));
+        definition.addPropertyValue("methodInterceptor",getInterceptor());
+        definition.addPropertyValue("proxyClass",attributes.get("proxyClass"));
         try {
             //Java反射获取类
             definition.addPropertyValue("type",Class.forName(className));
@@ -152,7 +152,6 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
         definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
         final AbstractBeanDefinition beanDefinition = definition.getBeanDefinition();
         beanDefinition.setPrimary((Boolean) attributes.get("primary"));
-        definition.addPropertyValue("methodInterceptor",getInterceptor());
         BeanDefinitionHolder holder = new BeanDefinitionHolder(beanDefinition, className, new String[] {className});
         BeanDefinitionReaderUtils.registerBeanDefinition(holder,registry);
     }
@@ -221,6 +220,6 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
     }
 
     private MethodInterceptor getInterceptor(){
-        return new WonderRPCInterceptor();
+        return new WonderRpcInterceptor();
     }
 }

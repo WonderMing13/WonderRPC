@@ -1,5 +1,0 @@
-#server:
-#  port: 8010
-#spring:
-#  main:
-#    allow-bean-definition-overriding: true

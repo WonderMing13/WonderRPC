@@ -16,10 +16,8 @@ import org.springframework.util.Assert;
  *     2.FactoryBean是一个接口,当在IOC容器中的Bean实现了FactoryBean接口后，通过getBean(String BeanName)获取到的Bean对象并不是FactoryBean的实现类对象,而是这个实现类中的getObject()方法返回的对象。
  *     3.要想获取FactoryBean的实现类，就要getBean(&BeanName)
  * </p>
- * @className: WonderRpcClientFactoryBean
- * @package: org.wonderming.registar
- * @author: wangdeming
- * @date: 2019-09-09 14:54
+ * @author wangdeming
+ * @date 2019-09-09 14:54
  **/
 public class WonderRpcClientFactoryBean implements FactoryBean<Object>, InitializingBean, ApplicationContextAware, BeanClassLoaderAware {
 
@@ -60,6 +58,7 @@ public class WonderRpcClientFactoryBean implements FactoryBean<Object>, Initiali
         ProxyFactory proxyFactory = new ProxyFactory();
         proxyFactory.addInterface(type);
         proxyFactory.addAdvice(methodInterceptor);
+        //是否开启优化策略
         proxyFactory.setOptimize(false);
         proxy = proxyFactory.getProxy(classLoader);
     }
