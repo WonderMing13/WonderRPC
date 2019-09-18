@@ -21,6 +21,7 @@
         <zookeeper.version>3.4.10</zookeeper.version>
         <netty.version>4.1.32.Final</netty.version>
         <curator.version>2.12.0</curator.version>
+        <protostuff.version>1.5.9</protostuff.version>
     </properties>
 
     <parent>
@@ -62,6 +63,18 @@
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
                 <version>${curator.version}</version>
+            </dependency>
+
+            <!--protostuff java序列化-->
+            <dependency>
+                <groupId>io.protostuff</groupId>
+                <artifactId>protostuff-core</artifactId>
+                <version>${protostuff.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.protostuff</groupId>
+                <artifactId>protostuff-runtime</artifactId>
+                <version>${protostuff.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

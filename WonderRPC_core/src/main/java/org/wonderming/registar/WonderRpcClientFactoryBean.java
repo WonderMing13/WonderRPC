@@ -25,6 +25,8 @@ public class WonderRpcClientFactoryBean implements FactoryBean<Object>, Initiali
 
     private Class<?> type;
 
+    private String proxyClass;
+
     private MethodInterceptor methodInterceptor;
 
     private ApplicationContext applicationContext;
@@ -89,6 +91,13 @@ public class WonderRpcClientFactoryBean implements FactoryBean<Object>, Initiali
         this.type = type;
     }
 
+    public String getProxyClass() {
+        return proxyClass;
+    }
+
+    public void setProxyClass(String proxyClass) {
+        this.proxyClass = proxyClass;
+    }
 
     public MethodInterceptor getMethodInterceptor() {
         return methodInterceptor;
