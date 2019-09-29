@@ -1,8 +1,9 @@
-package org.wonderming.serializer;
+package org.wonderming.serializer.serializerimpl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.wonderming.serializer.ISerializer;
 
 import java.io.IOException;
 
@@ -10,7 +11,7 @@ import java.io.IOException;
  * @author wangdeming
  * @date 2019-09-17 15:55
  **/
-public class JsonSerializer implements ISerializer{
+public class JsonSerializer implements ISerializer {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     static {

@@ -17,7 +17,6 @@ public class TestServiceImpl implements ITestService {
     @Autowired
     private ZookeeperConfiguration zookeeperConfiguration;
 
-
     @Override
     public void getTest() {
         zookeeperConfiguration.create();

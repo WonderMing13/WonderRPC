@@ -1,4 +1,4 @@
-package org.wonderming.serializer;
+package org.wonderming.serializer.serializerimpl;
 
 import io.protostuff.LinkedBuffer;
 import io.protostuff.ProtobufIOUtil;
@@ -6,6 +6,7 @@ import io.protostuff.Schema;
 import io.protostuff.runtime.RuntimeSchema;
 import org.springframework.objenesis.Objenesis;
 import org.springframework.objenesis.ObjenesisStd;
+import org.wonderming.serializer.ISerializer;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

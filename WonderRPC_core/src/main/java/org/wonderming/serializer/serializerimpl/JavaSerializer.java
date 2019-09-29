@@ -1,4 +1,6 @@
-package org.wonderming.serializer;
+package org.wonderming.serializer.serializerimpl;
+
+import org.wonderming.serializer.ISerializer;
 
 import java.io.*;
 
