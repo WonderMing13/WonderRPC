@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.util.ReferenceCountUtil;
+import org.wonderming.entity.RpcRequest;
 import org.wonderming.entity.RpcResponse;
 import org.wonderming.serializer.SerializerEngine;
 import org.wonderming.serializer.SerializerEnum;
@@ -57,7 +58,7 @@ public class WonderRpcDecoder extends LengthFieldBasedFrameDecoder {
             //ByteBuf缓冲区写入字节数组中
             byteBuf.readBytes(bytes);
             //反序列化字节
-            object = SerializerEngine.deserialize(bytes, RpcResponse.class,SerializerEnum.JsonSerializer);
+            object = SerializerEngine.deserialize(bytes, RpcRequest.class,SerializerEnum.JsonSerializer);
         } catch (Exception e) {
             e.printStackTrace();
         }finally {

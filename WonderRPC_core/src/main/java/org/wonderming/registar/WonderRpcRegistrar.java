@@ -1,6 +1,7 @@
 package org.wonderming.registar;
 
 import org.aopalliance.intercept.MethodInterceptor;
+import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -141,7 +142,6 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
         String className = annotationMetadata.getClassName();
         final BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(WonderRpcClientFactoryBean.class);
         definition.addPropertyValue("name",attributes.get("name"));
-        definition.addPropertyValue("methodInterceptor",getInterceptor());
         definition.addPropertyValue("proxyClass",attributes.get("proxyClass"));
         try {
             //Java反射获取类
@@ -152,6 +152,7 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
         definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
         final AbstractBeanDefinition beanDefinition = definition.getBeanDefinition();
         beanDefinition.setPrimary((Boolean) attributes.get("primary"));
+        definition.addPropertyValue("methodInterceptor",getInterceptor(beanDefinition.getPropertyValues()));
         BeanDefinitionHolder holder = new BeanDefinitionHolder(beanDefinition, className, new String[] {className});
         BeanDefinitionReaderUtils.registerBeanDefinition(holder,registry);
     }
@@ -206,20 +207,17 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
         }
 
         @Override
-        public boolean match(MetadataReader metadataReader,
-                             MetadataReaderFactory metadataReaderFactory) throws IOException {
-
+        public boolean match(MetadataReader metadataReader,MetadataReaderFactory metadataReaderFactory) throws IOException {
             for (TypeFilter filter : this.delegates) {
                 if (!filter.match(metadataReader, metadataReaderFactory)) {
                     return false;
                 }
             }
-
             return true;
         }
     }
 
-    private MethodInterceptor getInterceptor(){
-        return new WonderRpcInterceptor();
+    private MethodInterceptor getInterceptor(MutablePropertyValues mutablePropertyValues){
+        return new WonderRpcInterceptor(mutablePropertyValues);
     }
 }

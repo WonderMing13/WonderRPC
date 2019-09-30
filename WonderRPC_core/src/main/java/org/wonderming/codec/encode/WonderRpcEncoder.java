@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.ReferenceCountUtil;
+import org.wonderming.entity.RpcResponse;
 import org.wonderming.exception.SerializerException;
 import org.wonderming.serializer.SerializerEngine;
 import org.wonderming.serializer.SerializerEnum;

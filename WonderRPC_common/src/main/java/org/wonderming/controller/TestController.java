@@ -20,8 +20,8 @@ public class TestController {
 
 
     @GetMapping(value = "/hello")
-    public void sayTest(){
-         testService.getTest();
+    public String sayTest(){
+        return testService.getTest("CS");
     }
 
 }
