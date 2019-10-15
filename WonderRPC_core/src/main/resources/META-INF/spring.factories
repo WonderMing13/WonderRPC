@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration =\
-  org.wonderming.config.ZookeeperConfiguration
+  org.wonderming.config.ZookeeperConfiguration,org.wonderming.config.NettyServerConfiguration

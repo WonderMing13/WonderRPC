@@ -30,17 +30,10 @@ public class WonderRpcInterceptor implements MethodInterceptor {
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         final Method method = invocation.getMethod();
-
         final String proxyClass = (String) mutablePropertyValues.get("proxyClass");
-        final Class<?> type = (Class<?>) mutablePropertyValues.get("type");
-        final Object name = mutablePropertyValues.get("name");
-
         final Object bean = ApplicationContextUtil.getBean(Class.forName(proxyClass));
         final Class<?> aClass = bean.getClass();
-        final Method method1 = aClass.getMethod(method.getName(), method.getParameterTypes());
-        final Object invoke = method1.invoke(bean, invocation.getArguments());
-        System.out.println(invoke);
-
-        return invoke;
+        final Method proxyMethod = aClass.getMethod(method.getName(), method.getParameterTypes());
+        return proxyMethod.invoke(bean, invocation.getArguments());
     }
 }

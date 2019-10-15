@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author wangdeming
@@ -15,4 +16,8 @@ public class RpcRequest implements Serializable {
     private long requestId;
     private Object content;
 
+    public RpcRequest(){
+        AtomicLong aid = new AtomicLong();
+        requestId = aid.incrementAndGet();
+    }
 }
