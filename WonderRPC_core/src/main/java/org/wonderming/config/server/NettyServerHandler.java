@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 import org.wonderming.config.MyThreadFactory;
 import org.wonderming.entity.RpcRequest;
 import org.wonderming.entity.RpcResponse;
+import org.wonderming.utils.JsonUtil;
+
+import java.io.IOException;
 
 /**
  * @author wangdeming
@@ -15,16 +18,21 @@ import org.wonderming.entity.RpcResponse;
  **/
 @Component
 @Slf4j
-public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> {
+public class NettyServerHandler extends SimpleChannelInboundHandler<Object> {
 
-    @Autowired
-    private MyThreadFactory threadFactory;
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcRequest rpcRequest) throws Exception {
-         threadFactory.getExecutor().submit(()-> {
-               final RpcResponse rpcResponse = new RpcResponse();
-               rpcResponse.setResponseId(rpcRequest.getRequestId());
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object o) throws Exception {
+        final MyThreadFactory myThreadFactory = new MyThreadFactory();
+        myThreadFactory.getExecutor().submit(()-> {
+             try {
+                 final RpcRequest rpcRequest = JsonUtil.json2Obj((String) o, RpcRequest.class);
+                 final RpcResponse rpcResponse = new RpcResponse();
+                 rpcResponse.setResponseId(rpcRequest.getRequestId()).setResult("JW");
+                 channelHandlerContext.channel().writeAndFlush(JsonUtil.obj2Json(rpcResponse));
+             } catch (IOException e) {
+                 e.printStackTrace();
+             }
          });
     }
 

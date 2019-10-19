@@ -8,6 +8,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
+import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
@@ -48,8 +51,8 @@ public class NettyServer {
                      @Override
                      protected void initChannel(SocketChannel ch) {
                          ch.pipeline()
-                                 .addLast(new WonderRpcDecoder(65536))
-                                 .addLast(new WonderRpcEncoder())
+                                 .addLast(new StringDecoder(CharsetUtil.UTF_8))
+                                 .addLast(new StringEncoder(CharsetUtil.UTF_8))
                                  .addLast(new NettyServerHandler());
                      }
                  }).option(ChannelOption.SO_BACKLOG,128)
