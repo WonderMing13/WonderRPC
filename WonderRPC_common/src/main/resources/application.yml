@@ -6,9 +6,6 @@ wonder:
     address: 47.102.204.172
     port: 2181
   netty:
-    server:
-      host: 127.0.0.1
-      port: 9091
     client:
       name: wonder
       host: 127.0.0.1

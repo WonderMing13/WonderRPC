@@ -2,10 +2,13 @@ package org.wonderming.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.wonderming.config.server.NettyServer;
+
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author wangdeming
@@ -19,8 +22,8 @@ public class NettyServerConfiguration {
     private NettyServerProperties nettyServerProperties;
 
     @Bean
-    @ConditionalOnClass(NettyServerProperties.class)
-    public NettyServer nettyServer(){
+    @ConditionalOnProperty(prefix = "wonder.netty.server",name = {"host","port"})
+    public NettyServer nettyServer() throws ExecutionException, InterruptedException {
         final NettyServer nettyServer = new NettyServer();
         nettyServer.start(nettyServerProperties);
         return nettyServer;

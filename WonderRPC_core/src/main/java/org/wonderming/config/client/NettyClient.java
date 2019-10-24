@@ -9,6 +9,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.logging.LogLevel;
@@ -20,6 +21,9 @@ import org.wonderming.config.MyThreadFactory;
 import org.wonderming.config.NettyClientProperties;
 import org.wonderming.entity.DefaultFuture;
 import org.wonderming.entity.RpcRequest;
+import org.wonderming.entity.RpcResponse;
+import org.wonderming.serializer.SerializerEngine;
+import org.wonderming.serializer.SerializerEnum;
 import org.wonderming.utils.JsonUtil;
 
 import java.net.InetSocketAddress;
@@ -31,9 +35,9 @@ import java.util.concurrent.TimeUnit;
  **/
 public class NettyClient {
 
-    private static Bootstrap b;
+    private static NettyClientProperties nettyClientProperties;
 
-    private static ChannelFuture f;
+    private static Bootstrap b;
 
     private static final EventLoopGroup WORK_GROUP = new NioEventLoopGroup(5);
 
@@ -50,8 +54,9 @@ public class NettyClient {
                             @Override
                             protected void initChannel(SocketChannel channel) throws Exception {
                                 channel.pipeline()
-                                        .addLast(new StringDecoder(CharsetUtil.UTF_8))
-                                        .addLast(new StringEncoder(CharsetUtil.UTF_8))
+                                        .addLast(new WonderRpcEncoder(RpcRequest.class))
+                                        .addLast(new LengthFieldBasedFrameDecoder(65536, 0, 4, 0, 0))
+                                        .addLast(new WonderRpcDecoder(RpcResponse.class))
                                         .addLast(new NettyClientHandler());
                             }
                         });
@@ -61,22 +66,25 @@ public class NettyClient {
         });
     }
 
-    public void start(NettyClientProperties nettyClientProperties){
+    public DefaultFuture start(RpcRequest rpcRequest) throws InterruptedException {
         final InetSocketAddress inetSocketAddress = new InetSocketAddress(nettyClientProperties.getHost(),nettyClientProperties.getPort());
-        final RpcRequest rpcRequest = new RpcRequest();
-        rpcRequest.setContent("FUCK");
-        try {
-            init();
-            TimeUnit.MILLISECONDS.sleep(2000);
-            f = b.connect(inetSocketAddress).sync();
-            f.channel().writeAndFlush(JsonUtil.obj2Json(rpcRequest));
-            final DefaultFuture defaultFuture = new DefaultFuture(rpcRequest);
-            System.out.println(defaultFuture.get().getResult().toString());
-        } catch (InterruptedException | JsonProcessingException e) {
-            e.printStackTrace();
-        } finally {
-            f.channel().close();
-            WORK_GROUP.shutdownGracefully();
-        }
+            try {
+                init();
+                TimeUnit.MILLISECONDS.sleep(2000);
+                ChannelFuture f = b.connect(inetSocketAddress).sync();
+                f.channel().writeAndFlush(rpcRequest);
+                return new DefaultFuture(rpcRequest);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+    }
+
+    public NettyClientProperties getNettyClientProperties() {
+        return nettyClientProperties;
+    }
+
+    public void setNettyClientProperties(NettyClientProperties nettyClientProperties) {
+        NettyClient.nettyClientProperties = nettyClientProperties;
     }
 }

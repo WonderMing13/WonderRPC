@@ -15,16 +15,9 @@ import javax.annotation.Resource;
 @Service
 public class WonderServiceImpl implements WonderService {
 
-    @Autowired
-    private ApplicationContext applicationContext;
-
-
 
     @Override
-    public void testWonder() {
-        final Object bean = applicationContext.getBean("org.wonderming.service.TestService");
-        final String name = bean.getClass().getName();
-        System.out.println(name);
-        System.out.println("hjp!");
+    public String getTest(String str) {
+        return "hi" + str;
     }
 }

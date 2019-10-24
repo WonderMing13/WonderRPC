@@ -10,12 +10,11 @@ import org.wonderming.utils.JsonUtil;
  * @author wangdeming
  * @date 2019-09-29 15:28
  **/
-public class NettyClientHandler extends SimpleChannelInboundHandler<Object> {
+public class NettyClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
 
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object o) throws Exception {
-        final RpcResponse rpcResponse = JsonUtil.json2Obj(o.toString(), RpcResponse.class);
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcResponse rpcResponse) throws Exception {
         DefaultFuture.recive(rpcResponse);
     }
 }

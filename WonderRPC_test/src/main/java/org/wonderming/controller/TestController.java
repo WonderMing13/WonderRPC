@@ -5,22 +5,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.wonderming.service.WonderService;
 
-import javax.annotation.Resource;
-
 /**
- * @className: TestController
- * @package: org.wonderming.controller
- * @author: wangdeming
- * @date: 2019-09-11 10:08
+ * @author wangdeming
+ * @date 2019-10-24 13:28
  **/
 @RestController
-public class HelloController {
+public class TestController {
 
     @Autowired
     private WonderService wonderService;
 
-    @GetMapping(value = "/wonder")
-    public void test(){
-        wonderService.testWonder();
+    @GetMapping(value = "/test")
+    public String test(){
+        return wonderService.getTest("test");
     }
 }

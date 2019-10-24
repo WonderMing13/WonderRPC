@@ -8,5 +8,6 @@ package org.wonderming.service;
  **/
 public interface WonderService {
 
-    public void testWonder();
+    String getTest(String str);
+
 }

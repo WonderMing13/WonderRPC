@@ -7,6 +7,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.wonderming.config.client.NettyClient;
+import org.wonderming.entity.DefaultFuture;
+import org.wonderming.entity.RpcRequest;
 
 /**
  * @author wangdeming
@@ -23,7 +25,7 @@ public class NettyClientConfiguration {
     @ConditionalOnProperty(prefix = "wonder.netty.client",name = {"name","host","port"})
     public NettyClient nettyClient(NettyClientProperties nettyClientProperties){
         final NettyClient nettyClient = new NettyClient();
-        nettyClient.start(nettyClientProperties);
+        nettyClient.setNettyClientProperties(nettyClientProperties);
         return nettyClient;
     }
 

@@ -13,8 +13,30 @@ import java.util.concurrent.atomic.AtomicLong;
 @Data
 @Accessors(chain = true)
 public class RpcRequest implements Serializable {
+    /**
+     * RPC请求ID
+     */
     private long requestId;
+    /**
+     * RPC请求体
+     */
     private Object content;
+    /**
+     * 请求接口名称
+     */
+    private String interfaceName;
+    /**
+     * 请求方法名
+     */
+    private String methodName;
+    /**
+     * 请求方法参数
+     */
+    private Class<?>[] parameterTypes;
+    /**
+     * invoke所需要的参数
+     */
+    private Object[] param;
 
     public RpcRequest(){
         AtomicLong aid = new AtomicLong();

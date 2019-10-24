@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.wonderming.service.ITestService;
 
+import javax.annotation.Resource;
+
 
 /**
  * @author wangdeming
@@ -15,7 +17,7 @@ import org.wonderming.service.ITestService;
 @RestController
 public class TestController {
 
-    @Autowired
+    @Resource
     private ITestService testService;
 
 
