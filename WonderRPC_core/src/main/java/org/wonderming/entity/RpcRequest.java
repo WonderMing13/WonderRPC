@@ -30,16 +30,12 @@ public class RpcRequest implements Serializable {
      */
     private String methodName;
     /**
-     * 请求方法参数
+     * 请求方法参数类型列表
      */
     private Class<?>[] parameterTypes;
     /**
-     * invoke所需要的参数
+     * invoke参数列表
      */
     private Object[] param;
 
-    public RpcRequest(){
-        AtomicLong aid = new AtomicLong();
-        requestId = aid.incrementAndGet();
-    }
 }

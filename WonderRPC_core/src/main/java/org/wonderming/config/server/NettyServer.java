@@ -34,8 +34,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author wangdeming
  * @date 2019-09-29 15:26
  **/
-@Component
-@Slf4j
 public class NettyServer {
 
     @Autowired

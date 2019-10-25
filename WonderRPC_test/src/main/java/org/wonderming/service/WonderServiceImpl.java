@@ -1,10 +1,6 @@
 package org.wonderming.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
 
 /**
  * @className: WonderServiceImpl
@@ -20,4 +16,5 @@ public class WonderServiceImpl implements WonderService {
     public String getTest(String str) {
         return "hi" + str;
     }
+
 }

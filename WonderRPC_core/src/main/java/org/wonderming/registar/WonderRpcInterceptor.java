@@ -10,6 +10,7 @@ import org.wonderming.config.client.NettyClient;
 import org.wonderming.entity.DefaultFuture;
 import org.wonderming.entity.RpcRequest;
 import org.wonderming.utils.ApplicationContextUtil;
+import org.wonderming.utils.SnowflakeIdWorkerUtil;
 
 import javax.annotation.Resource;
 import java.lang.reflect.InvocationTargetException;
@@ -38,7 +39,7 @@ public class WonderRpcInterceptor implements MethodInterceptor {
         final Method method = invocation.getMethod();
         final String proxyClass = (String) mutablePropertyValues.get("proxyClass");
         final RpcRequest rpcRequest = new RpcRequest();
-        rpcRequest.setInterfaceName(proxyClass).setParam(invocation.getArguments()).setMethodName(method.getName()).setParameterTypes(method.getParameterTypes());
+        rpcRequest.setRequestId(SnowflakeIdWorkerUtil.getInstance().nextId()).setInterfaceName(proxyClass).setParam(invocation.getArguments()).setMethodName(method.getName()).setParameterTypes(method.getParameterTypes());
         final NettyClient nettyClient = new NettyClient();
         final DefaultFuture defaultFuture = nettyClient.start(rpcRequest);
         return defaultFuture.get().getResult();
