@@ -6,6 +6,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.lang.annotation.Annotation;
 import java.util.Map;
 
 /**
@@ -19,12 +20,9 @@ public class ApplicationContextUtil implements ApplicationContextAware {
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        ApplicationContextUtil.applicationContext = applicationContext;
+            ApplicationContextUtil.applicationContext = applicationContext;
     }
 
-    private static ApplicationContext getApplicationContext() {
-        return applicationContext;
-    }
 
     /**
      * 根据名称来获取bean对象
@@ -32,7 +30,7 @@ public class ApplicationContextUtil implements ApplicationContextAware {
      * @return Object
      */
     public static Object getBean(String name){
-        return getApplicationContext().getBean(name);
+        return applicationContext.getBean(name);
     }
 
     /**
@@ -42,7 +40,7 @@ public class ApplicationContextUtil implements ApplicationContextAware {
      * @return 返回类型
      */
     public static  <T> T getBean(Class<T> tClass){
-        return getApplicationContext().getBean(tClass);
+        return applicationContext.getBean(tClass);
     }
 
     /**
@@ -53,6 +51,10 @@ public class ApplicationContextUtil implements ApplicationContextAware {
      * @return
      */
     public static  <T> Map<String, T> getBeansOfType(Class<T> clazz) {
-        return getApplicationContext().getBeansOfType(clazz);
+        return applicationContext.getBeansOfType(clazz);
+    }
+
+    public static Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> annotation){
+        return applicationContext.getBeansWithAnnotation(annotation);
     }
 }

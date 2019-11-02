@@ -1,4 +1,4 @@
-package org.wonderming.config;
+package org.wonderming.config.thread;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;

@@ -9,24 +9,22 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
-import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.wonderming.codec.decode.WonderRpcDecoder;
 import org.wonderming.codec.encode.WonderRpcEncoder;
-import org.wonderming.config.MyThreadFactory;
-import org.wonderming.config.NettyServerProperties;
-import org.wonderming.config.ZookeeperConfiguration;
+import org.wonderming.config.configuration.ServiceRegistry;
+import org.wonderming.config.thread.MyThreadFactory;
+import org.wonderming.config.properties.NettyServerProperties;
+import org.wonderming.config.properties.ZookeeperProperties;
 import org.wonderming.entity.RpcRequest;
 import org.wonderming.entity.RpcResponse;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -34,26 +32,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author wangdeming
  * @date 2019-09-29 15:26
  **/
+@AutoConfigureAfter({ServiceRegistry.class})
+@EnableConfigurationProperties(NettyServerProperties.class)
 public class NettyServer {
 
     @Autowired
-    private ZookeeperConfiguration zookeeperConfiguration;
+    private ServiceRegistry serviceRegistry;
 
-    private AtomicBoolean start = new AtomicBoolean(false);
+    @Autowired
+    private NettyServerProperties nettyServerProperties;
 
     /**
      * 主从线程提升性能
      */
-    public void start(NettyServerProperties nettyServerProperties) throws ExecutionException, InterruptedException {
-        if (start.get()){
-            return;
-        }
+    public void start(){
         final MyThreadFactory threadFactory = new MyThreadFactory();
         threadFactory.getExecutor().submit(()-> {
-            final EventLoopGroup group = new NioEventLoopGroup(1);
+            final EventLoopGroup workGroup = new NioEventLoopGroup(1);
             try {
                 ServerBootstrap b = new ServerBootstrap();
-                b.group(group)
+                b.group(workGroup)
                  .channel(NioServerSocketChannel.class)
                  .childHandler(new ChannelInitializer<SocketChannel>() {
                      @Override
@@ -67,16 +65,23 @@ public class NettyServer {
                  }).option(ChannelOption.SO_BACKLOG,128)
                    .childOption(ChannelOption.SO_KEEPALIVE,true);
                 final InetSocketAddress inetSocketAddress = new InetSocketAddress(nettyServerProperties.getHost(), nettyServerProperties.getPort());
-                final ChannelFuture f = b.bind(inetSocketAddress).syncUninterruptibly();
-                start.set(true);
-                final CuratorFramework curatorFramework = zookeeperConfiguration.create();
-                curatorFramework.create().withMode(CreateMode.EPHEMERAL).forPath("/register");
-                f.channel().closeFuture().syncUninterruptibly();
+                //同步启动，RPC服务器启动完毕后才执行后续代码
+                final ChannelFuture f = b.bind(inetSocketAddress).sync();
+                //注册服务
+                serviceRegistry.registerService(nettyServerProperties);
+                //释放资源
+                f.channel().closeFuture().sync();
             }catch (Exception e){
                 e.printStackTrace();
+            }finally {
+                threadFactory.getExecutor().shutdown();
+                workGroup.shutdownGracefully();
             }
-        }).get();
+        });
     }
+
+
+
 
 
 }

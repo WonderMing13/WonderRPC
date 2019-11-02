@@ -1,4 +1,4 @@
-package org.wonderming.config;
+package org.wonderming.config.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
  * @date 2019-09-16 16:01
  **/
 @Data
-@Component
 @ConfigurationProperties(prefix = "wonder.zk")
 public class ZookeeperProperties {
     private String address;

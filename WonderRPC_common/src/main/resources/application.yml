@@ -8,5 +8,3 @@ wonder:
   netty:
     client:
       name: wonder
-      host: 127.0.0.1
-      port: 9091
