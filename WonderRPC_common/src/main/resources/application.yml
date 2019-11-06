@@ -3,8 +3,8 @@ server:
 
 wonder:
   zk:
-    address: 47.102.204.172
-    port: 2181
+    address: 47.102.204.172:2181
   netty:
     client:
       name: wonder
+      routeStrategy: ConsistentHash

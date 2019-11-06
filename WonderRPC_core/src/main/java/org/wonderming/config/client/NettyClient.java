@@ -17,13 +17,14 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component;
 import org.wonderming.codec.decode.WonderRpcDecoder;
 import org.wonderming.codec.encode.WonderRpcEncoder;
-import org.wonderming.config.configuration.ServiceRegistry;
+import org.wonderming.config.configuration.ServiceConfiguration;
 import org.wonderming.config.properties.NettyServerProperties;
 import org.wonderming.config.thread.MyThreadFactory;
 import org.wonderming.config.properties.NettyClientProperties;
 import org.wonderming.entity.DefaultFuture;
 import org.wonderming.entity.RpcRequest;
 import org.wonderming.entity.RpcResponse;
+import org.wonderming.strategy.RouteEnum;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
@@ -33,12 +34,12 @@ import java.util.concurrent.TimeUnit;
  * @date 2019-09-29 15:26
  **/
 @Component
-@AutoConfigureAfter({ServiceRegistry.class})
+@AutoConfigureAfter({ServiceConfiguration.class})
 @EnableConfigurationProperties(NettyClientProperties.class)
 public class NettyClient {
 
     @Autowired
-    private ServiceRegistry serviceRegistry;
+    private ServiceConfiguration serviceConfiguration;
 
     @Autowired
     private NettyClientProperties nettyClientProperties;
@@ -73,7 +74,7 @@ public class NettyClient {
     }
 
     public DefaultFuture start(RpcRequest rpcRequest) throws Exception {
-        final String discoveryService = serviceRegistry.discoveryService(rpcRequest);
+        final String discoveryService = serviceConfiguration.discoveryService(rpcRequest,nettyClientProperties);
         final String[] strSplit = discoveryService.split(":");
         final InetSocketAddress inetSocketAddress = new InetSocketAddress(strSplit[0],Integer.valueOf(strSplit[1]));
             try {

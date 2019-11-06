@@ -33,8 +33,8 @@ public class NettyClientConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public ServiceRegistry serviceRegistry(){
-        return new ServiceRegistry();
+    public ServiceConfiguration serviceConfiguration(){
+        return new ServiceConfiguration();
     }
 
     @Bean

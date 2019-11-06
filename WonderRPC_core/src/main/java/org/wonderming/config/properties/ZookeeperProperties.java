@@ -11,8 +11,10 @@ import org.springframework.stereotype.Component;
 @Data
 @ConfigurationProperties(prefix = "wonder.zk")
 public class ZookeeperProperties {
+    /**
+     * 集群模式用逗号隔开
+     */
     private String address;
-    private String port;
     private int maxRetries = 3;
     private int baseSleepTimeMs = 1000;
 }

@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.wonderming.codec.decode.WonderRpcDecoder;
 import org.wonderming.codec.encode.WonderRpcEncoder;
-import org.wonderming.config.configuration.ServiceRegistry;
+import org.wonderming.config.configuration.ServiceConfiguration;
 import org.wonderming.config.thread.MyThreadFactory;
 import org.wonderming.config.properties.NettyServerProperties;
 import org.wonderming.config.properties.ZookeeperProperties;
@@ -32,12 +32,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author wangdeming
  * @date 2019-09-29 15:26
  **/
-@AutoConfigureAfter({ServiceRegistry.class})
+@AutoConfigureAfter({ServiceConfiguration.class})
 @EnableConfigurationProperties(NettyServerProperties.class)
 public class NettyServer {
 
     @Autowired
-    private ServiceRegistry serviceRegistry;
+    private ServiceConfiguration serviceConfiguration;
 
     @Autowired
     private NettyServerProperties nettyServerProperties;
@@ -68,7 +68,7 @@ public class NettyServer {
                 //同步启动，RPC服务器启动完毕后才执行后续代码
                 final ChannelFuture f = b.bind(inetSocketAddress).sync();
                 //注册服务
-                serviceRegistry.registerService(nettyServerProperties);
+                serviceConfiguration.registerService(nettyServerProperties);
                 //释放资源
                 f.channel().closeFuture().sync();
             }catch (Exception e){

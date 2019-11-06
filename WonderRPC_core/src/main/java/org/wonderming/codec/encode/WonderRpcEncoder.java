@@ -25,13 +25,13 @@ public class WonderRpcEncoder extends MessageToByteEncoder<Object> {
 
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, Object o, ByteBuf byteBuf){
-        byte[] bytes = null;
+        byte[] bytes;
         if (byteBuf == null){
             return;
         }
         //没有继承序列化接口 则抛出异常
         if (!(o instanceof Serializable)){
-            throw new SerializerException("序列化异常");
+            throw new SerializerException("Not implements Serializable...");
         }
         //编码是否为传入对象的实例
         if (genericClass.isInstance(o)){

@@ -26,15 +26,6 @@ public enum SerializerEnum {
         this.code = code;
     }
 
-    public static SerializerEnum searchByCode(int code){
-        for (SerializerEnum serializerEnum : values()) {
-            if (serializerEnum.getCode() == code){
-                return serializerEnum;
-            }
-        }
-        return null;
-    }
-
     public int getCode() {
         return code;
     }
