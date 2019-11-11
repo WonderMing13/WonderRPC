@@ -10,5 +10,7 @@ public interface WonderService {
 
     String getTest(String str);
 
+    int getZookeeperLock();
+
 
 }

@@ -40,8 +40,6 @@ public class NettyClientConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = "wonder.netty.client",name = {"name"})
     public NettyClient nettyClient(){
-        final NettyClient nettyClient = new NettyClient();
-        nettyClient.init();
-        return nettyClient;
+        return new NettyClient();
     }
 }

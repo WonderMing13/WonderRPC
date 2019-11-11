@@ -10,12 +10,14 @@ import java.util.concurrent.*;
  * @author wangdeming
  * @date 2019-09-29 15:41
  **/
-@Component
-@Slf4j
 public class MyThreadFactory {
 
-    public ExecutorService getExecutor(){
+    public static ThreadPoolExecutor getExecutor(){
         final ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("demo-pool-%d").build();
-        return new ThreadPoolExecutor(16, 16, 600L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1024), namedThreadFactory, new ThreadPoolExecutor.AbortPolicy());
+        return new ThreadPoolExecutor(4, 10, 600L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(10240), namedThreadFactory, new ThreadPoolExecutor.AbortPolicy());
+    }
+
+    public static ExecutorService getSingleThreadPool(){
+        return Executors.newSingleThreadExecutor();
     }
 }

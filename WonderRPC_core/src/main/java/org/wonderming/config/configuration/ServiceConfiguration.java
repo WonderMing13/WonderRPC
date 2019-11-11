@@ -10,6 +10,7 @@ import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,14 +56,14 @@ public class ServiceConfiguration {
     /**
      * Curator Apache操作Zookeeper工具类
      */
-    private CuratorFramework curatorFramework;
+    private static CuratorFramework curatorFramework;
 
 
     /**
      * 连接Zookeeper
      */
     @PostConstruct
-    private void createZookeeper(){
+    public void createZookeeper(){
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(zookeeperProperties.getBaseSleepTimeMs(),zookeeperProperties.getMaxRetries());
         //单个实例创建连接管理集群
         curatorFramework = CuratorFrameworkFactory.newClient(zookeeperProperties.getAddress(), retryPolicy);
@@ -96,6 +97,11 @@ public class ServiceConfiguration {
         return ZK_BASE_PATH + "/" + interfaceName;
     }
 
+
+    private String getInterfaceName(String ifn){
+        return ifn.contains("$$") ? ifn.split("\\$")[0] : ifn;
+    }
+
     /**
      * 注册服务
      */
@@ -105,7 +111,7 @@ public class ServiceConfiguration {
         final Map<String, Object> beansWithAnnotation = ApplicationContextUtil.getBeansWithAnnotation(Service.class);
         for (Object bean: beansWithAnnotation.values()) {
             final String interfaceName = bean.getClass().getCanonicalName();
-            final String interfaceStr = getServicePath(interfaceName);
+            final String interfaceStr = getServicePath(getInterfaceName(interfaceName));
             final String serverAddressStr = interfaceStr + "/" + addressStr;
             try {
                 //创建wonderRPC/服务名的永久节点
@@ -168,6 +174,13 @@ public class ServiceConfiguration {
         //负载均衡服务节点
         IRouteStrategy routeStrategy = RouteEngine.queryStrategy(nettyClientProperties.getRouteStrategy());
         return new String(curatorFramework.getData().forPath(servicePath + "/" + routeStrategy.select(serviceAddressList)));
+    }
+
+    /**
+     * Zookeeper的分布式锁
+     */
+    public static InterProcessMutex getInterProcessMutex(){
+        return new InterProcessMutex(curatorFramework,"/curator/lock");
     }
 
 }

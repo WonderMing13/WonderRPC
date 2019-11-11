@@ -11,6 +11,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -44,22 +45,20 @@ public class NettyClient {
     @Autowired
     private NettyClientProperties nettyClientProperties;
 
-    private static Bootstrap b;
-
-    private static final EventLoopGroup WORK_GROUP = new NioEventLoopGroup(5);
-
-    public void init(){
-        final MyThreadFactory threadFactory = new MyThreadFactory();
-        threadFactory.getExecutor().submit(()->{
+    public DefaultFuture start(RpcRequest rpcRequest) throws Exception {
+        final String discoveryService = serviceConfiguration.discoveryService(rpcRequest,nettyClientProperties);
+        final String[] strSplit = discoveryService.split(":");
+        final InetSocketAddress inetSocketAddress = new InetSocketAddress(strSplit[0],Integer.valueOf(strSplit[1]));
+        EventLoopGroup workGroup = new NioEventLoopGroup(5);
             try {
-                b = new Bootstrap();
-                b.group(WORK_GROUP)
+                Bootstrap b = new Bootstrap();
+                b.group(workGroup)
                         .channel(NioSocketChannel.class)
                         .option(ChannelOption.SO_KEEPALIVE,true)
                         .handler(new LoggingHandler(LogLevel.INFO))
                         .handler(new ChannelInitializer<SocketChannel>() {
                             @Override
-                            protected void initChannel(SocketChannel channel) throws Exception {
+                            protected void initChannel(SocketChannel channel){
                                 channel.pipeline()
                                         .addLast(new WonderRpcEncoder(RpcRequest.class))
                                         .addLast(new LengthFieldBasedFrameDecoder(65536, 0, 4, 0, 0))
@@ -67,25 +66,13 @@ public class NettyClient {
                                         .addLast(new NettyClientHandler());
                             }
                         });
-            }catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        });
-    }
-
-    public DefaultFuture start(RpcRequest rpcRequest) throws Exception {
-        final String discoveryService = serviceConfiguration.discoveryService(rpcRequest,nettyClientProperties);
-        final String[] strSplit = discoveryService.split(":");
-        final InetSocketAddress inetSocketAddress = new InetSocketAddress(strSplit[0],Integer.valueOf(strSplit[1]));
-            try {
                 TimeUnit.MILLISECONDS.sleep(2000);
                 ChannelFuture f = b.connect(inetSocketAddress).sync();
-                f.channel().writeAndFlush(rpcRequest);
-                return new DefaultFuture(rpcRequest);
+                f.channel().writeAndFlush(rpcRequest).sync();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return null;
+        return new DefaultFuture(rpcRequest);
     }
 
 }

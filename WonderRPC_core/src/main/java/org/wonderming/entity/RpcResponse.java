@@ -14,4 +14,5 @@ import java.io.Serializable;
 public class RpcResponse implements Serializable {
     private long responseId;
     private Object result;
+    private Throwable error;
 }

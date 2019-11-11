@@ -39,7 +39,7 @@ public class DefaultFuture {
         return this.rpcResponse;
     }
 
-    public static void recive(RpcResponse rpcResponse){
+    public static void receive(RpcResponse rpcResponse){
         DefaultFuture defaultFuture = ALL_DEFAULT_FUTURE.get(rpcResponse.getResponseId());
         if (defaultFuture != null){
             Lock lock = defaultFuture.lock;

@@ -26,6 +26,7 @@ import org.wonderming.entity.RpcResponse;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -42,28 +43,40 @@ public class NettyServer {
     @Autowired
     private NettyServerProperties nettyServerProperties;
 
+    private static ThreadPoolExecutor threadPoolExecutor;
+
+    private static EventLoopGroup bossGroup;
+
+    private static EventLoopGroup workerGroup;
+
     /**
      * 主从线程提升性能
      */
     public void start(){
-        final MyThreadFactory threadFactory = new MyThreadFactory();
-        threadFactory.getExecutor().submit(()-> {
-            final EventLoopGroup workGroup = new NioEventLoopGroup(1);
+        //创建NettyServerBan对象的同时,另外启动一个线程来开启Netty的线程组
+        MyThreadFactory.getSingleThreadPool().submit(() -> {
+            // 配置服务端NIO线程组
+            bossGroup = new NioEventLoopGroup(1);
+            workerGroup = new NioEventLoopGroup();
             try {
                 ServerBootstrap b = new ServerBootstrap();
-                b.group(workGroup)
-                 .channel(NioServerSocketChannel.class)
-                 .childHandler(new ChannelInitializer<SocketChannel>() {
-                     @Override
-                     protected void initChannel(SocketChannel ch) {
-                         ch.pipeline()
-                                 .addLast(new LengthFieldBasedFrameDecoder(65536, 0, 4, 0, 0))
-                                 .addLast(new WonderRpcDecoder(RpcRequest.class))
-                                 .addLast(new NettyServerHandler())
-                                 .addLast(new WonderRpcEncoder(RpcResponse.class));
-                     }
-                 }).option(ChannelOption.SO_BACKLOG,128)
-                   .childOption(ChannelOption.SO_KEEPALIVE,true);
+                //boss线程负责TCP的三次握手协议,work线程负责消息读写 编码解码
+                b.group(bossGroup, workerGroup)
+                        //创建jdk channel
+                        .channel(NioServerSocketChannel.class)
+                        .childHandler(new ChannelInitializer<SocketChannel>() {
+                            @Override
+                            protected void initChannel(SocketChannel ch) {
+                                //对数据的读写逻辑操作
+                                ch.pipeline()
+                                        .addLast(new LengthFieldBasedFrameDecoder(65536, 0, 4, 0, 0))
+                                        .addLast(new WonderRpcDecoder(RpcRequest.class))
+                                        .addLast(new NettyServerHandler())
+                                        .addLast(new WonderRpcEncoder(RpcResponse.class));
+                            }
+                        }).option(ChannelOption.SO_BACKLOG, 128)
+                        .childOption(ChannelOption.TCP_NODELAY, true)
+                        .childOption(ChannelOption.SO_KEEPALIVE, true);
                 final InetSocketAddress inetSocketAddress = new InetSocketAddress(nettyServerProperties.getHost(), nettyServerProperties.getPort());
                 //同步启动，RPC服务器启动完毕后才执行后续代码
                 final ChannelFuture f = b.bind(inetSocketAddress).sync();
@@ -71,17 +84,20 @@ public class NettyServer {
                 serviceConfiguration.registerService(nettyServerProperties);
                 //释放资源
                 f.channel().closeFuture().sync();
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
-            }finally {
-                threadFactory.getExecutor().shutdown();
-                workGroup.shutdownGracefully();
             }
         });
     }
 
-
-
-
-
+    static void submit(Runnable runnable){
+        if (threadPoolExecutor == null){
+            synchronized (NettyServer.class){
+                if (threadPoolExecutor == null){
+                    threadPoolExecutor = MyThreadFactory.getExecutor();
+                }
+            }
+        }
+        threadPoolExecutor.submit(runnable);
+    }
 }

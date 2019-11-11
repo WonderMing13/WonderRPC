@@ -18,6 +18,8 @@ import java.util.List;
  * @date 2019-09-19 14:08
  **/
 public class WonderRpcDecoder extends ByteToMessageDecoder {
+    private static final int HEAD_LENGTH = 4;
+
     private Class<?> genericClass;
 
     public WonderRpcDecoder(Class<?> genericClass){
@@ -25,8 +27,8 @@ public class WonderRpcDecoder extends ByteToMessageDecoder {
     }
 
     @Override
-    protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) throws Exception {
-        if (byteBuf.readableBytes() < 4){
+    protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) {
+        if (byteBuf.readableBytes() < HEAD_LENGTH){
             return;
         }
         byteBuf.markReaderIndex();

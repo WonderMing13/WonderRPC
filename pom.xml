@@ -31,6 +31,7 @@
         <version>2.0.4.RELEASE</version>
     </parent>
 
+
     <dependencyManagement>
         <dependencies>
             <!--lombok减少Get Set代码-->
@@ -52,6 +53,17 @@
                 <groupId>org.apache.zookeeper</groupId>
                 <artifactId>zookeeper</artifactId>
                 <version>${zookeeper.version}</version>
+                <!--解决日志冲突-->
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-log4j12</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>log4j</groupId>
+                        <artifactId>log4j</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <!--zookeeper Apache客户端相关处理-->

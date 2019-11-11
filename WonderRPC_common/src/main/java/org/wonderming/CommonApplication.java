@@ -9,7 +9,7 @@ import org.wonderming.annotation.EnableWonderRpc;
  * @date 2019-09-06 15:15
  **/
 @SpringBootApplication
-@EnableWonderRpc(basePackages = "org.wonderming")
+@EnableWonderRpc(basePackages = "org.wonderming.service")
 public class CommonApplication {
     public static void main(String[] args) {
         SpringApplication.run(CommonApplication.class,args);

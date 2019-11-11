@@ -28,6 +28,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.wonderming.annotation.EnableWonderRpc;
 import org.wonderming.annotation.WonderRpcClient;
+import org.wonderming.annotation.ZookeeperLock;
 
 import java.io.IOException;
 import java.util.*;
@@ -97,7 +98,7 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
         final Map<String, Object> attrs = metadata.getAnnotationAttributes(EnableWonderRpc.class.getName());
         final AnnotationTypeFilter annotationTypeFilter = new AnnotationTypeFilter(WonderRpcClient.class);
         final Class<?>[] clients = attrs == null ? null : (Class<?>[]) attrs.get(CLIENTS);
-        if (clients == null || clients.length == 0) {
+        if (clients == null) {
             scanner.addIncludeFilter(annotationTypeFilter);
             basePackages = getBasePackages(metadata);
         }else {

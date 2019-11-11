@@ -18,11 +18,10 @@ import java.lang.reflect.Method;
 @Slf4j
 public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> {
 
-
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcRequest rpcRequest) throws Exception {
-        final MyThreadFactory myThreadFactory = new MyThreadFactory();
-        myThreadFactory.getExecutor().submit(()-> {
+    protected void channelRead0(ChannelHandlerContext ctx, RpcRequest rpcRequest){
+        //形成Netty Nio线程池接受RPC请求，处理channel逻辑处理丢给后端io线程池来处理
+        NettyServer.submit(()->{
             final RpcResponse rpcResponse = new RpcResponse();
             try {
                 Object bean = ApplicationContextUtil.getBean(Class.forName(rpcRequest.getInterfaceName()));
@@ -30,10 +29,10 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> 
                 final Method proxyMethod = aClass.getMethod(rpcRequest.getMethodName(),rpcRequest.getParameterTypes());
                 final Object result = proxyMethod.invoke(bean, rpcRequest.getParam());
                 rpcResponse.setResponseId(rpcRequest.getRequestId()).setResult(result);
-                channelHandlerContext.channel().writeAndFlush(rpcResponse);
-            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
+               } catch (Exception e) {
+                  rpcResponse.setError(e);
+               }
+            ctx.channel().writeAndFlush(rpcResponse);
         });
     }
 
