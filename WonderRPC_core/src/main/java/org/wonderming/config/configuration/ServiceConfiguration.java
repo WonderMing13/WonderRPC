@@ -98,6 +98,11 @@ public class ServiceConfiguration {
     }
 
 
+    /**
+     * 添加Spring Aop之后,根据"$$"分割字符串获取真正的接口名称
+     * @param ifn interfaceName
+     * @return String 分割之后的接口名
+     */
     private String getInterfaceName(String ifn){
         return ifn.contains("$$") ? ifn.split("\\$")[0] : ifn;
     }

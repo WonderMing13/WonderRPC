@@ -49,7 +49,7 @@ public class NettyClient {
         final String discoveryService = serviceConfiguration.discoveryService(rpcRequest,nettyClientProperties);
         final String[] strSplit = discoveryService.split(":");
         final InetSocketAddress inetSocketAddress = new InetSocketAddress(strSplit[0],Integer.valueOf(strSplit[1]));
-        EventLoopGroup workGroup = new NioEventLoopGroup(5);
+        EventLoopGroup workGroup = new NioEventLoopGroup();
             try {
                 Bootstrap b = new Bootstrap();
                 b.group(workGroup)
@@ -66,7 +66,6 @@ public class NettyClient {
                                         .addLast(new NettyClientHandler());
                             }
                         });
-                TimeUnit.MILLISECONDS.sleep(2000);
                 ChannelFuture f = b.connect(inetSocketAddress).sync();
                 f.channel().writeAndFlush(rpcRequest).sync();
             } catch (Exception e) {
@@ -74,5 +73,4 @@ public class NettyClient {
             }
         return new DefaultFuture(rpcRequest);
     }
-
 }

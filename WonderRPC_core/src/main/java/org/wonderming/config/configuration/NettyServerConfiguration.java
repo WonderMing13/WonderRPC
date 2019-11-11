@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.wonderming.config.properties.NettyServerProperties;
 import org.wonderming.config.properties.ZookeeperProperties;
 import org.wonderming.config.server.NettyServer;
+import org.wonderming.config.thread.MyThreadFactory;
+
 
 /**
  * @author wangdeming
@@ -39,7 +41,8 @@ public class NettyServerConfiguration {
     @ConditionalOnProperty(prefix = "wonder.netty.server",name = {"host","port"})
     public NettyServer nettyServer(){
         final NettyServer nettyServer = new NettyServer();
-        nettyServer.start();
+        //单线程线程池使提供者注册服务,不阻塞主线程
+        MyThreadFactory.getSingleThreadPool().submit(nettyServer::start);
         return nettyServer;
     }
 }
