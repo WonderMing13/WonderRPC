@@ -1,11 +1,16 @@
 package org.wonderming.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.wonderming.annotation.ZookeeperLock;
 import org.wonderming.service.WonderService;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author wangdeming
@@ -13,10 +18,27 @@ import org.wonderming.service.WonderService;
  **/
 @Slf4j
 @RestController
-public class TestController {
+public class TestController{
+
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     @Autowired
     private WonderService wonderService;
+
+    @GetMapping(value = "/sendDirect")
+    public void sendDirect(){
+        Map<String, Object> map = new HashMap<>(2);
+        map.put("msg","点对点消息");
+        map.put("data", "helloWorld");
+        rabbitTemplate.convertAndSend("exchange.direct","direct.queue", map);
+    }
+
+    @GetMapping(value = "/receiveDirect")
+    public void receiveDirect(){
+        final Object o = rabbitTemplate.receiveAndConvert("direct.queue");
+        System.out.println(o);
+    }
 
     @GetMapping(value = "/test")
     public int test(){

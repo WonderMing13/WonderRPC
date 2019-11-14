@@ -143,6 +143,8 @@ public class WonderRpcRegistrar implements ImportBeanDefinitionRegistrar, Resour
         String className = annotationMetadata.getClassName();
         final BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(WonderRpcClientFactoryBean.class);
         definition.addPropertyValue("name",attributes.get("name"));
+        definition.addPropertyValue("isSync",attributes.get("isSync"));
+        definition.addPropertyValue("requestTimeout",attributes.get("requestTimeout"));
         definition.addPropertyValue("proxyClass",attributes.get("proxyClass"));
         try {
             //Java反射获取类

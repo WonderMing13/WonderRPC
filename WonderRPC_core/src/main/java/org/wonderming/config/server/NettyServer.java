@@ -1,5 +1,6 @@
 package org.wonderming.config.server;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -9,32 +10,20 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.annotation.After;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.stereotype.Component;
 import org.wonderming.codec.decode.WonderRpcDecoder;
 import org.wonderming.codec.encode.WonderRpcEncoder;
 import org.wonderming.config.configuration.ServiceConfiguration;
 import org.wonderming.config.thread.MyThreadFactory;
 import org.wonderming.config.properties.NettyServerProperties;
-import org.wonderming.config.properties.ZookeeperProperties;
 import org.wonderming.entity.RpcRequest;
 import org.wonderming.entity.RpcResponse;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author wangdeming
@@ -52,13 +41,16 @@ public class NettyServer {
 
     private static ThreadPoolExecutor threadPoolExecutor;
 
+    private static ThreadFactory namedBossThreadFactory = new ThreadFactoryBuilder().setNameFormat("wonderRpc-netty-server-boss").setDaemon(false).build();
+
+    private static ThreadFactory namedWorkThreadFactory = new ThreadFactoryBuilder().setNameFormat("wonderRpc-netty-server-worker").setDaemon(true).build();
     /**
      * 主从线程提升性能
      */
-    public void start() {
+    public void start(){
         //配置服务端NIO线程组
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        EventLoopGroup bossGroup = new NioEventLoopGroup(1,namedBossThreadFactory);
+        EventLoopGroup workerGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2,namedWorkThreadFactory);
         try {
             ServerBootstrap b = new ServerBootstrap();
             //boss线程负责TCP的三次握手协议,work线程负责消息读写 编码解码
@@ -87,9 +79,17 @@ public class NettyServer {
             f.channel().closeFuture().sync();
         } catch (Exception e) {
             e.printStackTrace();
+        }finally {
+            //疑问不会走这里 可能线程执行完毕之后回归线程池
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
         }
     }
 
+    /**
+     * 锁定NettyServer,handler的逻辑交给线程池处理
+     * @param runnable Runnable
+     */
     static void submit(Runnable runnable) {
         if (threadPoolExecutor == null) {
             synchronized (NettyServer.class) {

@@ -1,4 +1,4 @@
-package org.wonderming.resolver;
+package org.wonderming.config.resolver;
 
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.aspectj.lang.ProceedingJoinPoint;

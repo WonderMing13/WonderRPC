@@ -6,6 +6,14 @@ wonder:
       host: 127.0.0.1
       port: 8000
 
+
 server:
   port: 9092
 
+
+spring:
+  rabbitmq:
+    host: 47.102.204.172
+    port: 5672
+    username: guest
+    password: guest

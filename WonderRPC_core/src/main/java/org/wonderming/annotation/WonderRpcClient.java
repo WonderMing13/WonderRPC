@@ -31,4 +31,16 @@ public @interface WonderRpcClient {
      * @return String
      */
     String proxyClass() default "";
+
+    /**
+     * RPC 消费者客户端 是否同步调用
+     * @return boolean
+     */
+    boolean isSync() default true;
+
+    /**
+     * 同步调用时间设置 单位毫秒
+     * @return int
+     */
+    int requestTimeout() default 3000;
 }

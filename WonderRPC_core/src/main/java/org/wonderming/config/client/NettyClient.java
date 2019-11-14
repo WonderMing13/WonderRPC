@@ -1,5 +1,6 @@
 package org.wonderming.config.client;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -28,6 +29,7 @@ import org.wonderming.entity.RpcResponse;
 import org.wonderming.strategy.RouteEnum;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -45,11 +47,19 @@ public class NettyClient {
     @Autowired
     private NettyClientProperties nettyClientProperties;
 
+    private static ThreadFactory namedThreadFactory  = new ThreadFactoryBuilder().setNameFormat("Rpc-netty-client").setDaemon(false).build();
+
+    private static EventLoopGroup workGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2,namedThreadFactory);
+
+    public static EventLoopGroup getWorkGroup() {
+        return workGroup;
+    }
+
     public DefaultFuture start(RpcRequest rpcRequest) throws Exception {
         final String discoveryService = serviceConfiguration.discoveryService(rpcRequest,nettyClientProperties);
         final String[] strSplit = discoveryService.split(":");
         final InetSocketAddress inetSocketAddress = new InetSocketAddress(strSplit[0],Integer.valueOf(strSplit[1]));
-        EventLoopGroup workGroup = new NioEventLoopGroup();
+        workGroup = new NioEventLoopGroup();
             try {
                 Bootstrap b = new Bootstrap();
                 b.group(workGroup)
@@ -67,7 +77,7 @@ public class NettyClient {
                             }
                         });
                 ChannelFuture f = b.connect(inetSocketAddress).sync();
-                f.channel().writeAndFlush(rpcRequest).sync();
+                f.channel().writeAndFlush(rpcRequest);
             } catch (Exception e) {
                 e.printStackTrace();
             }

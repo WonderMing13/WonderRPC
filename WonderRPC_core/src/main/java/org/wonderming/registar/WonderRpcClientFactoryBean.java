@@ -27,6 +27,10 @@ public class WonderRpcClientFactoryBean implements FactoryBean<Object>, Initiali
 
     private String proxyClass;
 
+    private boolean isSync;
+
+    private int requestTimeout;
+
     private MethodInterceptor methodInterceptor;
 
     private ApplicationContext applicationContext;
@@ -73,6 +77,22 @@ public class WonderRpcClientFactoryBean implements FactoryBean<Object>, Initiali
     @Override
     public boolean isSingleton(){
         return false;
+    }
+
+    public boolean isSync() {
+        return isSync;
+    }
+
+    public void setIsSync(boolean sync) {
+        isSync = sync;
+    }
+
+    public int getRequestTimeout() {
+        return requestTimeout;
+    }
+
+    public void setRequestTimeout(int requestTimeout) {
+        this.requestTimeout = requestTimeout;
     }
 
     public String getName() {

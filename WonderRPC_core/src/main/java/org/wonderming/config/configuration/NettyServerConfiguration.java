@@ -41,7 +41,7 @@ public class NettyServerConfiguration {
     @ConditionalOnProperty(prefix = "wonder.netty.server",name = {"host","port"})
     public NettyServer nettyServer(){
         final NettyServer nettyServer = new NettyServer();
-        //单线程线程池使提供者注册服务,不阻塞主线程
+        //单线程线程池使提供者注册服务,不阻塞主线程。线程处理完毕之后回归线程池处于就绪状态
         MyThreadFactory.getSingleThreadPool().submit(nettyServer::start);
         return nettyServer;
     }
