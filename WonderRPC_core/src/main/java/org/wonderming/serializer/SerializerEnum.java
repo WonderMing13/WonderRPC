@@ -1,9 +1,13 @@
 package org.wonderming.serializer;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
  * @author wangdeming
  * @date 2019-09-19 14:40
  **/
+@AllArgsConstructor
 public enum SerializerEnum {
     /**
      *  JDK序列化和反序列化
@@ -20,19 +24,6 @@ public enum SerializerEnum {
      */
     ProtoStuffSerializer(2);
 
+    @Getter
     private int code;
-
-    SerializerEnum(int code) {
-        this.code = code;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-
 }

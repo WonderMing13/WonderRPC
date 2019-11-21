@@ -26,6 +26,12 @@ public class TestController{
     @Autowired
     private WonderService wonderService;
 
+    @GetMapping(value = "/firstTest")
+    @ZookeeperLock
+    public int testFirst(){
+        return wonderService.getZookeeperLock();
+    }
+
     @GetMapping(value = "/sendDirect")
     public void sendDirect(){
         Map<String, Object> map = new HashMap<>(2);
@@ -84,4 +90,8 @@ public class TestController{
         }
         return c;
     }
+
+
+
+
 }

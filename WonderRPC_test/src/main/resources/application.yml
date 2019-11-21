@@ -11,9 +11,9 @@ server:
   port: 9092
 
 
-spring:
-  rabbitmq:
-    host: 47.102.204.172
-    port: 5672
-    username: guest
-    password: guest
+#spring:
+#  rabbitmq:
+#    host: 47.102.204.172
+#    port: 5672
+#    username: guest
+#    password: guest

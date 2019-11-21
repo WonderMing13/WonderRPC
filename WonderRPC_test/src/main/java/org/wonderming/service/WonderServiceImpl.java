@@ -3,9 +3,6 @@ package org.wonderming.service;
 import org.springframework.stereotype.Service;
 import org.wonderming.annotation.ZookeeperLock;
 
-
-import java.util.Map;
-
 /**
  * @className: WonderServiceImpl
  * @package: org.wonderming.service
@@ -22,7 +19,6 @@ public class WonderServiceImpl implements WonderService {
         return "hi" + str;
     }
 
-    @ZookeeperLock
     @Override
     public int getZookeeperLock() {
         return i++;

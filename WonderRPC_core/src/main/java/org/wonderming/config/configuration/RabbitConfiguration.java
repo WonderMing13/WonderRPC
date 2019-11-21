@@ -1,8 +1,5 @@
 package org.wonderming.config.configuration;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -43,11 +40,7 @@ public class RabbitConfiguration {
 
     @PostConstruct
     public void init(){
-        //创建Exchange
-        rabbitAdmin.declareExchange(new DirectExchange("exchange.direct"));
-        //创建Queue
-        rabbitAdmin.declareQueue(new Queue("direct.queue",true));
-        //绑定Queue
-        rabbitAdmin.declareBinding( new Binding( "direct.queue" , Binding.DestinationType.QUEUE , "exchange.direct" , "direct.queue" , null ) );
+        //RabbitTemplate支持事务
+        rabbitTemplate.setChannelTransacted(true);
     }
 }

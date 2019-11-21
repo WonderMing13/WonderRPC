@@ -1,5 +1,7 @@
 package org.wonderming.service;
 
+import org.wonderming.annotation.ZookeeperLock;
+
 /**
  * @className: WonderService
  * @package: org.wonderming.service

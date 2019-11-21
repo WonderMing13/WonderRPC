@@ -14,5 +14,4 @@ public interface ITestService {
 
     RpcFuture<RpcResponse> getTest(String str);
 
-
 }

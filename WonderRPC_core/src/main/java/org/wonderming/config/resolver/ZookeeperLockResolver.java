@@ -5,18 +5,26 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 import org.wonderming.config.configuration.ServiceConfiguration;
 
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 在Controller层使用或者在ServiceImpl的实现类实现也可以
+ * 优先级最高
  * @author wangdeming
  * @date 2019-11-07 17:35
  **/
 @Aspect
 @Component
-public class ZookeeperLockResolver {
+public class ZookeeperLockResolver implements Ordered {
+
+    @Override
+    public int getOrder() {
+        return Integer.MIN_VALUE;
+    }
 
     @Pointcut("@annotation(org.wonderming.annotation.ZookeeperLock)")
     public void zookeeperLock(){}

@@ -5,6 +5,7 @@ import org.wonderming.entity.DefaultFuture;
 import org.wonderming.entity.RpcFuture;
 import org.wonderming.entity.RpcResponse;
 import org.wonderming.service.ITestService;
+import org.wonderming.service.IWonderService;
 
 import javax.annotation.Resource;
 import java.util.concurrent.TimeoutException;
@@ -20,9 +21,14 @@ public class TestController {
     @Resource
     private ITestService testService;
 
+    @Resource
+    private IWonderService wonderService;
+
     @GetMapping(value = "/hello")
-    public String sayTest() throws TimeoutException {
+    public void sayTest() throws TimeoutException {
         final RpcFuture<RpcResponse> rpcFuture = testService.getTest("SQL");
-        return (String) rpcFuture.get(3000).getResult();
+        final String wonderStr = wonderService.getWonder("YM");
+        System.out.println((String) rpcFuture.get(3000).getResult());
+        System.out.println(wonderStr);
     }
 }
