@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration =\
- org.wonderming.config.configuration.NettyServerConfiguration,org.wonderming.config.configuration.NettyClientConfiguration
+ org.wonderming.config.configuration.NettyServerConfiguration,org.wonderming.config.configuration.NettyClientConfiguration,org.wonderming.config.configuration.TccTransactionConfiguration

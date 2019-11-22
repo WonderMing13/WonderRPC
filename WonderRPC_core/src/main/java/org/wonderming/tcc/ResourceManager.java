@@ -9,11 +9,6 @@ import org.wonderming.tcc.entity.Transaction;
  **/
 public interface ResourceManager {
     /**
-     * 事务持久化存储介质的初始化操作
-     * @return rowEffected
-     */
-    int init();
-    /**
      * 创建事务日志记录
      * @param transaction Transaction
      * @return rowEffected
@@ -31,4 +26,11 @@ public interface ResourceManager {
      * @return rowEffected
      */
     int delete(Transaction transaction);
+
+    /**
+     * 根据Xid获取事务日志记录
+     * @param transaction Transaction
+     * @return Transaction
+     */
+    Transaction findByXid(Transaction transaction);
 }

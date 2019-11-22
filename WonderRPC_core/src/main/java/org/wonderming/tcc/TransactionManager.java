@@ -23,9 +23,9 @@ public interface TransactionManager {
 
     /**
      * 改变当前事务状态
-     * @param transactionStatus TransactionStatus
+     * @param transactionContext TransactionContext
      */
-    void changeTransactionStatus(TransactionStatus transactionStatus);
+    void changeTransactionStatus(TransactionContext transactionContext);
 
     /**
      * 获取当前事务

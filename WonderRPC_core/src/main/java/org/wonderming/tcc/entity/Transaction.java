@@ -16,10 +16,6 @@ import java.util.List;
 @Data
 public class Transaction implements Serializable {
     /**
-     * 事务所属业务域
-     */
-    private String domain;
-    /**
      * 事务Xid
      */
     private TransactionXid xid;
@@ -47,5 +43,45 @@ public class Transaction implements Serializable {
      * 参与者列表(一个confirm方法和一个cancel方法)
      */
     private List<Participant> participants = new ArrayList<>();
+    /**
+     * 乐观锁的版本控制
+     */
+    private int version = 1;
+    /**
+     * 更新最后更新时间
+     */
+    public void updateLastUpdateTime(){
+        this.lastUpdateTime = new Date();
+    }
+    /**
+     * 更新版本号
+     */
+    public void updateVersion(){
+        this.version++;
+    }
+
+    public Transaction(TransactionXid transactionXid, TransactionStatus status, TransactionType type) {
+        this.xid=transactionXid;
+        this.status=status;
+        this.transactionType=type;
+    }
+
+    /**
+     * 事务提交
+     */
+    public void commit() {
+        for (Participant participant : participants) {
+            participant.commit();
+        }
+    }
+
+    /**
+     * 事务回滚
+     */
+    public void rollback() {
+        for (Participant participant : participants) {
+            participant.rollback();
+        }
+    }
 
 }

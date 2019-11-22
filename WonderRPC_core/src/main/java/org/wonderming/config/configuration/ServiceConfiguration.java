@@ -13,6 +13,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -22,9 +23,15 @@ import org.wonderming.config.properties.NettyClientProperties;
 import org.wonderming.config.properties.NettyServerProperties;
 import org.wonderming.config.properties.ZookeeperProperties;
 import org.wonderming.entity.RpcRequest;
+import org.wonderming.exception.OptimisticLockException;
+import org.wonderming.exception.TccTransactionException;
+import org.wonderming.serializer.SerializerEngine;
+import org.wonderming.serializer.SerializerEnum;
 import org.wonderming.strategy.IRouteStrategy;
 import org.wonderming.strategy.RouteEngine;
 import org.wonderming.strategy.strategyimpl.RandomRouteStrategyImpl;
+import org.wonderming.tcc.entity.Transaction;
+import org.wonderming.tcc.entity.TransactionXid;
 import org.wonderming.utils.ApplicationContextUtil;
 
 import javax.annotation.PostConstruct;
@@ -44,9 +51,16 @@ import java.util.Set;
 @Slf4j
 @EnableConfigurationProperties(ZookeeperProperties.class)
 public class ServiceConfiguration {
+    private static final int SUCCESS=1;
+    private static final int FAIL=0;
 
     @Autowired
     private ZookeeperProperties zookeeperProperties;
+
+    /**
+     * 分布式事务的根目录
+     */
+    private static final String TCC_PATH = "/tcc";
 
     /**
      * Zookeeper保存服务消息的父节点
@@ -121,10 +135,10 @@ public class ServiceConfiguration {
             try {
                 //创建wonderRPC/服务名的永久节点
                 curatorFramework.create().creatingParentsIfNeeded().forPath(interfaceStr);
+            } catch (KeeperException.NodeExistsException node) {
+                log.info("Rpc Path already Exist");
             } catch (Exception e) {
-                if (e.getMessage().contains("NodeExist")) {
-                    log.info("Path already Exist");
-                }
+                e.printStackTrace();
             }
             boolean registerSuccess = false;
             while (!registerSuccess) {
@@ -187,5 +201,93 @@ public class ServiceConfiguration {
     public static InterProcessMutex getInterProcessMutex(){
         return new InterProcessMutex(curatorFramework,"/curator/lock");
     }
+
+    /**
+     * 根据分布式XA协议唯一Xid设为值
+     * @param transactionXid TransactionXid
+     * @return String
+     */
+    private String getTccXidPath(TransactionXid transactionXid){
+        return String.format("%s/%s",TCC_PATH,new String(transactionXid.getGlobalTransactionId()) + "" + new String(transactionXid.getBranchQualifier()));
+    }
+
+    /**
+     * 创建事务记录,并且赋予父节点数值
+     * @param transaction Transaction
+     * @return int
+     */
+    public int doCreate(Transaction transaction){
+        try {
+            String path = getTccXidPath(transaction.getXid());
+            curatorFramework.create()
+                            .creatingParentsIfNeeded()
+                            .withMode(CreateMode.PERSISTENT)
+                            .forPath(path, SerializerEngine.serialize(transaction, SerializerEnum.JavaSerializer));
+        } catch (KeeperException.NodeExistsException node) {
+            log.info("TCC Path already Exist");
+        } catch(Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+        return SUCCESS;
+    }
+
+    /**
+     * 更新事务记录
+     * @param transaction Transaction
+     * @return int
+     */
+    public int doUpdate(Transaction transaction){
+        try {
+            String path = getTccXidPath(transaction.getXid());
+            transaction.updateLastUpdateTime();
+            transaction.updateVersion();
+            //通过setData的version实现乐观锁控制。事务对象的version从1开始，zkVersion从0开始。所以要 -2
+            //version不一样时会报错
+            curatorFramework.setData()
+                            .withVersion(transaction.getVersion() - 2)
+                            .forPath(path,SerializerEngine.serialize(transaction,SerializerEnum.JavaSerializer));
+            return SUCCESS;
+        } catch (KeeperException.BadVersionException version) {
+            throw new OptimisticLockException("OptimisticLock Bad Version");
+        } catch (Exception e){
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+    /**
+     * 删除事务记录
+     * @param transaction Transaction
+     * @return int
+     */
+    public int doDelete(Transaction transaction){
+        final String path = getTccXidPath(transaction.getXid());
+        try {
+            curatorFramework.delete()
+                            .forPath(path);
+            return SUCCESS;
+        } catch (Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+    /**
+     * 根据transaction信息 查找事务日志记录.
+     * @param transaction  事务对象
+     * @return transaction
+     */
+    public Transaction findByXid(Transaction transaction) {
+        try {
+            String path = getTccXidPath(transaction.getXid());
+            byte[] result = curatorFramework.getData().forPath(path);
+            if(result!=null){
+                return SerializerEngine.deserialize(result,Transaction.class,SerializerEnum.JavaSerializer);
+            }
+            return null;
+        } catch (Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+
 
 }

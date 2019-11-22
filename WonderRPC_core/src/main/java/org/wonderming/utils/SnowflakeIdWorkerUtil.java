@@ -86,7 +86,9 @@ public class SnowflakeIdWorkerUtil {
         return new SnowflakeIdWorkerUtil(workerId,datacenterId);
     }
 
-
+    public static byte[] newId(){
+        return String.valueOf(SnowflakeIdWorkerUtil.getInstance().nextId()).getBytes();
+    }
 
     private SnowflakeIdWorkerUtil(long workerId, long datacenterId) {
         if (workerId > maxWorkerId || workerId < 0) {

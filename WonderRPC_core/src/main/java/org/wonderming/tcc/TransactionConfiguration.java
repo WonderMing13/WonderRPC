@@ -7,11 +7,6 @@ package org.wonderming.tcc;
  **/
 public interface TransactionConfiguration {
     /**
-     * 获取事务的业务域
-     * @return String
-     */
-    String getDomain();
-    /**
      * 获取事务管理器TM
      * @return TransactionManager
      */
