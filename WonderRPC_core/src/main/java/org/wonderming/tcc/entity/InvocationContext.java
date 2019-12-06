@@ -1,13 +1,17 @@
 package org.wonderming.tcc.entity;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
+import org.wonderming.utils.ApplicationContextUtil;
 
 import java.io.Serializable;
+import java.lang.reflect.Method;
 
 /**
  * @author wangdeming
  * @date 2019-11-18 14:41
  **/
+@Accessors(chain = true)
 @Data
 public class InvocationContext implements Serializable {
     /**
@@ -21,7 +25,7 @@ public class InvocationContext implements Serializable {
     /**
      * 参数名列表
      */
-    private String[] parameterTypes;
+    private Class<?>[] parameterTypes;
     /**
      * invoke参数列表
      */
@@ -29,5 +33,15 @@ public class InvocationContext implements Serializable {
     /**
      * 执行提交或者回滚动作
      */
-    void invoke(){}
+    void invoke(){
+        try {
+            final Class<?> targetClass = Class.forName(targetClassName);
+            final Object bean = ApplicationContextUtil.getBean(targetClass);
+            final Class<?> aClass = bean.getClass();
+            final Method method = aClass.getMethod(methodName, parameterTypes);
+            method.invoke(bean,param);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

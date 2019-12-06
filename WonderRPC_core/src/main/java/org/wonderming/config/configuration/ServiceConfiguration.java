@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.wonderming.config.properties.NettyClientProperties;
 import org.wonderming.config.properties.NettyServerProperties;
+import org.wonderming.config.properties.TccProperties;
 import org.wonderming.config.properties.ZookeeperProperties;
 import org.wonderming.entity.RpcRequest;
 import org.wonderming.exception.OptimisticLockException;
@@ -49,13 +50,16 @@ import java.util.Set;
  * </p>
  **/
 @Slf4j
-@EnableConfigurationProperties(ZookeeperProperties.class)
+@EnableConfigurationProperties({ZookeeperProperties.class, TccProperties.class})
 public class ServiceConfiguration {
     private static final int SUCCESS=1;
     private static final int FAIL=0;
 
     @Autowired
     private ZookeeperProperties zookeeperProperties;
+
+    @Autowired
+    private TccProperties tccProperties;
 
     /**
      * 分布式事务的根目录
@@ -208,7 +212,7 @@ public class ServiceConfiguration {
      * @return String
      */
     private String getTccXidPath(TransactionXid transactionXid){
-        return String.format("%s/%s",TCC_PATH,new String(transactionXid.getGlobalTransactionId()) + "" + new String(transactionXid.getBranchQualifier()));
+        return String.format("%s/%s/%s/%s",TCC_PATH,tccProperties.getType(),new String(transactionXid.getGlobalTransactionId()),new String(transactionXid.getBranchQualifier()));
     }
 
     /**
@@ -283,6 +287,80 @@ public class ServiceConfiguration {
                 return SerializerEngine.deserialize(result,Transaction.class,SerializerEnum.JavaSerializer);
             }
             return null;
+        } catch (Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+    /**
+     * 在根事务中根据路径获取分支事务日志记录
+     * @param path String
+     * @return Transaction
+     */
+    public Transaction findByPath(String path){
+        try {
+            byte[] result = curatorFramework.getData().forPath(path);
+            return result != null ? SerializerEngine.deserialize(result,Transaction.class,SerializerEnum.JavaSerializer) : null;
+        } catch (Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+    /**
+     * 根事务中获取/tcc/branch下所有的分支事务节点
+     * @return List<String>
+     */
+    public List<String> findBranch(){
+        try {
+            return curatorFramework.getChildren().forPath("/tcc/branch");
+        } catch (Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+    /**
+     * 根据事务的全局id来获取所有分支事务
+     * @param globalId String
+     * @return List<String>
+     */
+    public List<String> findBranchId(String globalId){
+        try {
+            return curatorFramework.getChildren().forPath("/tcc/branch/" + globalId);
+        } catch (Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+    /**
+     * 更新分支事务
+     * @param transaction Transaction
+     * @return int
+     */
+    public int updateBranch(Transaction transaction){
+        try {
+            transaction.updateLastUpdateTime();
+            transaction.updateVersion();
+            curatorFramework.setData()
+                    .withVersion(transaction.getVersion() - 2)
+                    .forPath(String.format("%s/%s/%s/%s",TCC_PATH,"branch",new String(transaction.getXid().getGlobalTransactionId()),new String(transaction.getXid().getBranchQualifier())),SerializerEngine.serialize(transaction,SerializerEnum.JavaSerializer));
+            return SUCCESS;
+        } catch (KeeperException.BadVersionException version) {
+            throw new OptimisticLockException("OptimisticLock Bad Version");
+        } catch (Exception e){
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+    /**
+     * 删除分支事务
+     * @param transaction Transaction
+     * @return int
+     */
+    public int deleteBranch(Transaction transaction){
+        try {
+            curatorFramework.delete()
+                    .forPath(String.format("%s/%s/%s/%s",TCC_PATH,"branch",new String(transaction.getXid().getGlobalTransactionId()),new String(transaction.getXid().getBranchQualifier())));
+            return SUCCESS;
         } catch (Exception e) {
             throw new TccTransactionException("Tcc Exception",e);
         }

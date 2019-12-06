@@ -28,15 +28,15 @@ public class DefaultTransactionManager implements TransactionManager {
     private TransactionConfiguration transactionConfiguration;
 
     public DefaultTransactionManager(TransactionConfiguration transactionConfiguration) {
-        this.transactionConfiguration=transactionConfiguration;
+        this.transactionConfiguration = transactionConfiguration;
     }
 
     @Override
     public void begin() {
-        TransactionXid xid = new TransactionXid(SnowflakeIdWorkerUtil.newId(),SnowflakeIdWorkerUtil.newId());
-        Transaction transaction = new Transaction(xid,TransactionStatus.TRY, TransactionType.ROOT);
+        TransactionXid xid = new TransactionXid(SnowflakeIdWorkerUtil.newId(), SnowflakeIdWorkerUtil.newId());
+        Transaction transaction = new Transaction(xid, TransactionStatus.TRY, TransactionType.ROOT);
         int result = transactionConfiguration.getResourceManager().create(transaction);
-        log.info("create root transaction result:{}",result);
+        log.info("create root transaction result:{}", result);
         threadLocalTransaction.set(transaction);
     }
 
@@ -44,16 +44,16 @@ public class DefaultTransactionManager implements TransactionManager {
     public void begin(TransactionContext transactionContext) {
         TransactionXid transactionXid = transactionContext.getXid();
         TransactionStatus status = transactionContext.getStatus();
-        Transaction transaction = new Transaction(transactionXid,status,TransactionType.BRANCH);
+        Transaction transaction = new Transaction(transactionXid, status, TransactionType.BRANCH);
         int result = transactionConfiguration.getResourceManager().create(transaction);
-        log.info("create branch transaction result:{}",result);
+        log.info("create branch transaction result:{}", result);
         threadLocalTransaction.set(transaction);
     }
 
     @Override
     public void changeTransactionStatus(TransactionContext transactionContext) {
         TransactionXid transactionXid = transactionContext.getXid();
-        Transaction transactionQuery = new Transaction(transactionXid,null,null);
+        Transaction transactionQuery = new Transaction(transactionXid, null, null);
         Transaction transaction = transactionConfiguration.getResourceManager().findByXid(transactionQuery);
         if (transaction != null) {
             transaction.setStatus(transactionContext.getStatus());
@@ -69,48 +69,31 @@ public class DefaultTransactionManager implements TransactionManager {
     }
 
     @Override
-    public void commit(boolean isSync) {
-        Transaction transaction = getCurrentTransaction();
+    public void commit(Transaction transaction) {
         transaction.setStatus(TransactionStatus.CONFIRM);
-        transactionConfiguration.getResourceManager().update(transaction);
+        final int update = transactionConfiguration.getResourceManager().update(transaction);
+        log.info("update Root transaction {},result:{}",transaction,update);
         try {
-            if(isSync){
-                MyThreadFactory.getExecutor().submit(()->{
-                    transaction.commit();
-                    int result = transactionConfiguration.getResourceManager().delete(transaction);
-                    log.info("delete transaction {},result:{}",transaction,result);
-                });
-            }else{
-                transaction.commit();
-                int result = transactionConfiguration.getResourceManager().delete(transaction);
-                log.info("delete transaction {},result:{}",transaction,result);
-            }
+            transaction.commit(transaction);
+            int result = transactionConfiguration.getResourceManager().delete(transaction);
+            log.info("delete Root transaction {},result:{}", transaction, result);
             threadLocalTransaction.remove();
         } catch (Throwable commitException) {
-            throw new TccTransactionException("Commit error",commitException);
+            throw new TccTransactionException("Commit error", commitException);
         }
     }
 
     @Override
-    public void rollback(boolean isSync) {
-        Transaction transaction = getCurrentTransaction();
+    public void rollback(Transaction transaction) {
         transaction.setStatus(TransactionStatus.CANCEL);
         transactionConfiguration.getResourceManager().update(transaction);
         try {
-            if(isSync){
-                MyThreadFactory.getExecutor().submit(()->{
-                    transaction.rollback();
-                    int result = transactionConfiguration.getResourceManager().delete(transaction);
-                    log.info("delete transaction {},result:{}",transaction,result);
-                });
-            }else{
-                transaction.rollback();
-                int result = transactionConfiguration.getResourceManager().delete(transaction);
-                log.info("delete transaction {},result:{}",transaction,result);
-            }
+            transaction.rollback(transaction);
+            int result = transactionConfiguration.getResourceManager().delete(transaction);
+            log.info("delete transaction {},result:{}", transaction, result);
             threadLocalTransaction.remove();
         } catch (Throwable rollbackException) {
-            throw new TccTransactionException("Rollback error",rollbackException);
+            throw new TccTransactionException("Rollback error", rollbackException);
         }
     }
 }

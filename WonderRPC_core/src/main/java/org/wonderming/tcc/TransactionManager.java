@@ -35,13 +35,11 @@ public interface TransactionManager {
 
     /**
      * 对参与者进行事务提交
-     * @param isSync 是否异步执行
      */
-    void commit(boolean isSync);
+    void commit(Transaction transaction);
 
     /**
      * 对参与者进行事务回滚
-     * @param isSync 是否异步执行
      */
-    void rollback(boolean isSync);
+    void rollback(Transaction transaction);
 }

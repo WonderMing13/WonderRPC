@@ -15,6 +15,7 @@ import javax.annotation.Resource;
 import java.lang.reflect.Method;
 
 /**
+ * CGLIB动态代理
  * @author wangdeming
  * @date 2019-09-11 14:39
  **/

@@ -22,4 +22,5 @@ public class TransactionContext implements Serializable {
      * 事务状态
      */
     private TransactionStatus status;
+
 }

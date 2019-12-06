@@ -1,18 +1,28 @@
 package org.wonderming.tcc.entity;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.wonderming.config.client.NettyClient;
+import org.wonderming.config.configuration.ServiceConfiguration;
+import org.wonderming.entity.DefaultFuture;
+import org.wonderming.entity.RpcRequest;
 import org.wonderming.tcc.type.TransactionStatus;
 import org.wonderming.tcc.type.TransactionType;
+import org.wonderming.utils.ApplicationContextUtil;
+import org.wonderming.utils.SnowflakeIdWorkerUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author wangdeming
  * @date 2019-11-18 10:02
  **/
+@Slf4j
 @Data
 public class Transaction implements Serializable {
     /**
@@ -60,6 +70,12 @@ public class Transaction implements Serializable {
         this.version++;
     }
 
+    /**
+     * 构造函数
+     * @param transactionXid TransactionXid XA分布式Id
+     * @param status 事务状态
+     * @param type TransactionType
+     */
     public Transaction(TransactionXid transactionXid, TransactionStatus status, TransactionType type) {
         this.xid=transactionXid;
         this.status=status;
@@ -69,8 +85,30 @@ public class Transaction implements Serializable {
     /**
      * 事务提交
      */
-    public void commit() {
-        for (Participant participant : participants) {
+    public void commit(Transaction transaction) {
+        //远程事务提交
+        final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getBean(ServiceConfiguration.class);
+        final NettyClient nettyClient = ApplicationContextUtil.getBean(NettyClient.class);
+        final List<String> branchList = serviceConfiguration.findBranch();
+        //全局唯一根事务id
+        final String rootGlobalTransactionId = branchList.stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList()).get(0);
+        //该根事务下的所有分支事务
+        final List<String> branchIdList = serviceConfiguration.findBranchId(rootGlobalTransactionId);
+        branchIdList.forEach(a->{
+            String path = String.format("%s/%s/%s/%s","/tcc","branch",rootGlobalTransactionId,a);
+            final Transaction transactionZk = serviceConfiguration.findByPath(path);
+            transactionZk.setStatus(TransactionStatus.CONFIRM);
+            final int update = serviceConfiguration.updateBranch(transactionZk);
+            log.info("update Branch transaction {},result:{}",transactionZk,update);
+            transactionZk.getParticipants().forEach(p->{
+                InvocationContext confirmContext = p.getConfirmContext();
+                remoteInvoke(nettyClient, confirmContext);
+            });
+            final int delete = serviceConfiguration.deleteBranch(transactionZk);
+            log.info("delete Branch transaction {},result:{}", transactionZk, delete);
+        });
+        //本地事务提交
+        for (Participant participant : this.participants) {
             participant.commit();
         }
     }
@@ -78,10 +116,53 @@ public class Transaction implements Serializable {
     /**
      * 事务回滚
      */
-    public void rollback() {
+    public void rollback(Transaction transaction) {
+        //远程事务回滚
+        final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getBean(ServiceConfiguration.class);
+        final NettyClient nettyClient = ApplicationContextUtil.getBean(NettyClient.class);
+        final List<String> branchList = serviceConfiguration.findBranch();
+        final String rootGlobalTransactionId = branchList.stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList()).get(0);
+        final List<String> branchIdList = serviceConfiguration.findBranchId(rootGlobalTransactionId);
+        branchIdList.forEach(a->{
+            String path = String.format("%s/%s/%s/%s","/tcc","branch",rootGlobalTransactionId,a);
+            final Transaction transactionZk = serviceConfiguration.findByPath(path);
+            transactionZk.setStatus(TransactionStatus.CANCEL);
+            final int update = serviceConfiguration.updateBranch(transactionZk);
+            log.info("update Branch transaction {},result:{}",transactionZk,update);
+            transactionZk.getParticipants().forEach(p->{
+                final InvocationContext cancelContext = p.getCancelContext();
+                remoteInvoke(nettyClient, cancelContext);
+            });
+            final int delete = serviceConfiguration.deleteBranch(transactionZk);
+            log.info("delete Branch transaction {},result:{}", transactionZk, delete);
+        });
+        //本地事务回滚
         for (Participant participant : participants) {
             participant.rollback();
         }
+    }
+
+    private void remoteInvoke(NettyClient nettyClient, InvocationContext cancelContext) {
+        final RpcRequest rpcRequest = new RpcRequest();
+        rpcRequest.setRequestId(SnowflakeIdWorkerUtil.getInstance().nextId())
+                .setInterfaceName(cancelContext.getTargetClassName())
+                .setParameterTypes(cancelContext.getParameterTypes())
+                .setParam(cancelContext.getParam())
+                .setMethodName(cancelContext.getMethodName());
+        try {
+            final DefaultFuture defaultFuture = nettyClient.start(rpcRequest);
+            System.out.println(defaultFuture.get());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 添加事务参与者
+     * @param participant 事务参与者
+     */
+    public void addParticipant(Participant participant) {
+        participants.add(participant);
     }
 
 }

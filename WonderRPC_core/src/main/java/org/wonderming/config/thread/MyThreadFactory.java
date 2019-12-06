@@ -13,7 +13,7 @@ import java.util.concurrent.*;
 public class MyThreadFactory {
 
     public static ThreadPoolExecutor getExecutor(){
-        final ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("demo-pool-%d").build();
+        final ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("rpc-pool-%d").build();
         return new ThreadPoolExecutor(4, 10, 600L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(10240), namedThreadFactory, new ThreadPoolExecutor.AbortPolicy());
     }
 

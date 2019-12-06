@@ -3,12 +3,14 @@ package org.wonderming.config.configuration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.wonderming.config.client.NettyClient;
 import org.wonderming.config.properties.NettyClientProperties;
 import org.wonderming.config.properties.NettyServerProperties;
+import org.wonderming.config.properties.TccProperties;
 import org.wonderming.config.properties.ZookeeperProperties;
 
 /**
@@ -29,6 +31,12 @@ public class NettyClientConfiguration {
     @ConditionalOnMissingBean
     public ZookeeperProperties zookeeperProperties(){
         return new ZookeeperProperties();
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "wonder.tcc",name = {"type"})
+    public TccProperties tccProperties(){
+        return new TccProperties();
     }
 
     @Bean

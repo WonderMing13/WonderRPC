@@ -1,5 +1,8 @@
 package org.wonderming.annotation;
 
+import org.wonderming.tcc.type.MethodType;
+import org.wonderming.tcc.type.PropagationType;
+
 import java.lang.annotation.*;
 
 /**
@@ -16,17 +19,19 @@ public @interface TccTransaction {
      * 确认函数名称
      * @return 返回函数的名称
      */
-    String confirmMethod();
+    String confirmMethod() default "";
 
     /**
      * 取消函数名称
      * @return 返回函数的名称
      */
-    String cancelMethod();
+    String cancelMethod() default "";
 
     /**
-     * 主事务是否异步执行confirm和cancel方法(主事务可以异步，分支事务不支持异步)
-     * @return boolean 默认false
+     * 事务属性
+     * @return MethodType
      */
-    boolean isSync() default false;
+    MethodType type() default MethodType.ROOT;
+
+
 }

@@ -60,6 +60,7 @@ public class WonderRpcClientFactoryBean implements FactoryBean<Object>, Initiali
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        //cglib代理工厂,保证调用API时可以拦截到
         Assert.hasText(this.name, "Name must be set");
         ProxyFactory proxyFactory = new ProxyFactory();
         proxyFactory.addInterface(type);

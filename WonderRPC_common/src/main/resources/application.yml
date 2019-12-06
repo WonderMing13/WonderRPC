@@ -7,4 +7,6 @@ wonder:
   netty:
     client:
       name: wonder
-      routeStrategy: ConsistentHash
+      routeStrategy: Random
+  tcc:
+    type: root

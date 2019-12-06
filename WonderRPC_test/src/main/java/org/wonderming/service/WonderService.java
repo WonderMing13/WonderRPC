@@ -1,6 +1,8 @@
 package org.wonderming.service;
 
+import org.wonderming.annotation.TccTransaction;
 import org.wonderming.annotation.ZookeeperLock;
+import org.wonderming.tcc.entity.TransactionContext;
 
 /**
  * @className: WonderService
@@ -10,7 +12,7 @@ import org.wonderming.annotation.ZookeeperLock;
  **/
 public interface WonderService {
 
-    String getTest(String str);
+    String getTest(TransactionContext transactionContext,String str);
 
     int getZookeeperLock();
 

@@ -30,13 +30,13 @@ public class Participant implements Serializable {
      * 提交参与者事务
      */
     void commit(){
-        cancelContext.invoke();
+        confirmContext.invoke();
     }
     /**
      * 回滚参与者事务
      */
     void rollback(){
-        confirmContext.invoke();
+        cancelContext.invoke();
     }
 
 }
