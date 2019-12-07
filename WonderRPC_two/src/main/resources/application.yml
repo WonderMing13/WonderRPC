@@ -5,6 +5,8 @@ wonder:
     server:
       host: 127.0.0.1
       port: 8001
+  tcc:
+    type: branch
 
 server:
   port: 9093

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 import org.wonderming.annotation.TccTransaction;
+import org.wonderming.exception.TccTransactionException;
 import org.wonderming.tcc.TransactionConfiguration;
 import org.wonderming.tcc.TransactionManager;
 import org.wonderming.tcc.entity.Participant;
@@ -95,7 +96,9 @@ public class TccTransactionResolver implements Ordered {
             throwable.printStackTrace();
         }
         final Transaction transaction = transactionConfiguration.getTransactionManager().getCurrentTransaction();
-        transactionManager.commit(transaction);
+        if (transaction != null){
+            transactionManager.commit(transaction);
+        }
         return obj;
     }
 

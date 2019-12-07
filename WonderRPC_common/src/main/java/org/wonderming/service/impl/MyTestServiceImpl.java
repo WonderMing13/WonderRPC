@@ -6,6 +6,7 @@ import org.wonderming.annotation.TccTransaction;
 import org.wonderming.service.api.ITestService;
 import org.wonderming.service.MyOkService;
 import org.wonderming.service.MyTestService;
+import org.wonderming.service.api.IWonderService;
 import org.wonderming.tcc.TransactionConfiguration;
 import org.wonderming.tcc.entity.Transaction;
 import org.wonderming.tcc.entity.TransactionContext;
@@ -26,6 +27,9 @@ public class MyTestServiceImpl implements MyTestService {
     @Resource
     private ITestService iTestService;
 
+    @Resource
+    private IWonderService iWonderService;
+
     @Autowired
     private MyOkService myOkService;
 
@@ -35,8 +39,9 @@ public class MyTestServiceImpl implements MyTestService {
         System.out.println("开始处理逻辑");
         final Transaction currentTransaction = transactionConfiguration.getTransactionManager().getCurrentTransaction();
         final String hjp = iTestService.getTest(new TransactionContext(currentTransaction.getXid(),currentTransaction.getStatus()), "HJP");
+        final String xjx = iWonderService.getWonder(new TransactionContext(currentTransaction.getXid(), currentTransaction.getStatus()), "XJX");
         System.out.println("处理完成逻辑");
-        return hjp;
+        return hjp + xjx;
     }
 
     public String test1(){

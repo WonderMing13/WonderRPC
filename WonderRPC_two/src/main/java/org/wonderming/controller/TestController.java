@@ -16,8 +16,8 @@ public class TestController {
     @Resource
     private TestService testService;
 
-    @GetMapping(value = "/hi")
-    public String getWonder(){
-        return testService.getWonder("ym");
-    }
+//    @GetMapping(value = "/hi")
+//    public String getWonder(){
+//        return testService.getWonder("ym");
+//    }
 }

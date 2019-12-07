@@ -2,6 +2,7 @@ package org.wonderming.service.api;
 
 import org.wonderming.annotation.TccTransaction;
 import org.wonderming.annotation.WonderRpcClient;
+import org.wonderming.tcc.entity.TransactionContext;
 
 /**
  * @author wangdeming
@@ -10,5 +11,5 @@ import org.wonderming.annotation.WonderRpcClient;
 @WonderRpcClient(name = "testTwo",proxyClass = "org.wonderming.service.TestServiceImpl")
 public interface IWonderService {
 
-    String getWonder(String str);
+    String getWonder(TransactionContext transactionContext, String str);
 }
