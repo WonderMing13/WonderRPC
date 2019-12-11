@@ -42,5 +42,5 @@ public @interface WonderRpcClient {
      * 同步调用时间设置 单位毫秒
      * @return int
      */
-    int requestTimeout() default 6000;
+    int requestTimeout() default 5000;
 }

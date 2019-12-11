@@ -91,10 +91,12 @@ public class TccTransactionResolver implements Ordered {
         try {
             obj = joinPoint.proceed();
         } catch (Throwable throwable) {
+            //Try事务发生异常时
             final Transaction transaction = transactionConfiguration.getTransactionManager().getCurrentTransaction();
             transactionManager.rollback(transaction);
             throwable.printStackTrace();
         }
+        //Try事务正常执行时,执行各自的commit
         final Transaction transaction = transactionConfiguration.getTransactionManager().getCurrentTransaction();
         if (transaction != null){
             transactionManager.commit(transaction);

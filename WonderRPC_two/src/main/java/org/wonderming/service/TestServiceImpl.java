@@ -20,10 +20,14 @@ public class TestServiceImpl implements TestService {
     }
 
     public String ok(TransactionContext transactionContext,String str){
+        System.out.println("transactionContext："+transactionContext);
+        System.out.println("str："+str);
         return "okConfirm";
     }
 
     public String fuck(TransactionContext transactionContext,String str){
+        System.out.println("transactionContext："+transactionContext);
+        System.out.println("str："+str);
         return "okCancel";
     }
 }

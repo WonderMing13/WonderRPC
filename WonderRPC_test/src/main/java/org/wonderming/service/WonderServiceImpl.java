@@ -21,7 +21,6 @@ public class WonderServiceImpl implements WonderService {
     @TccTransaction(confirmMethod = "wonder1",cancelMethod = "wonder2",type = MethodType.PROVIDER)
     public String getTest(TransactionContext transactionContext,String str) {
         System.out.println("开始分支TRY事务");
-//        throw new RuntimeException();
         return "hi" + str;
     }
 

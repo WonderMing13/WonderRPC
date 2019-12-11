@@ -1,5 +1,6 @@
 package org.wonderming.config.configuration;
 
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -37,9 +38,9 @@ import org.wonderming.utils.ApplicationContextUtil;
 
 import javax.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author wangdeming
@@ -293,6 +294,22 @@ public class ServiceConfiguration {
     }
 
     /**
+     * 获取所有时间超过120秒的事务(根事务和分支事务)
+     * @param date 当前时间之前的120秒的Date
+     * @return Map<String,List<Transaction>>
+     */
+    public Map<String,List<Transaction>> doFindAllUnmodified(Date date){
+        Map<String,List<Transaction>> map = new HashMap<>(16);
+        try {
+            final List<String> list = curatorFramework.getChildren().forPath(String.format("%s/%s", TCC_PATH, "root"));
+            final List<String> list1 = curatorFramework.getChildren().forPath(String.format("%s/%s", TCC_PATH, "branch"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
+
+    /**
      * 在根事务中根据路径获取分支事务日志记录
      * @param path String
      * @return Transaction
@@ -360,6 +377,21 @@ public class ServiceConfiguration {
         try {
             curatorFramework.delete()
                     .forPath(String.format("%s/%s/%s/%s",TCC_PATH,"branch",new String(transaction.getXid().getGlobalTransactionId()),new String(transaction.getXid().getBranchQualifier())));
+            return SUCCESS;
+        } catch (Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+    /**
+     * 根据Type来彻底删除事务日志
+     * @param globalTransactionId String
+     * @param type String
+     * @return int
+     */
+    public int deleteRootBranch(String globalTransactionId,String type){
+        try {
+            curatorFramework.delete().forPath(String.format("%s/%s/%s",TCC_PATH,type,globalTransactionId));
             return SUCCESS;
         } catch (Exception e) {
             throw new TccTransactionException("Tcc Exception",e);

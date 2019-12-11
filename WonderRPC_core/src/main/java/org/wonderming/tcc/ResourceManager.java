@@ -2,6 +2,10 @@ package org.wonderming.tcc;
 
 import org.wonderming.tcc.entity.Transaction;
 
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 /**
  * 事务资源管理器
  * @author wangdeming
@@ -28,9 +32,24 @@ public interface ResourceManager {
     int delete(Transaction transaction);
 
     /**
+     * 彻底删除根事务的日志记录
+     * @param globalTransactionId String
+     * @param type String
+     * @return int
+     */
+    int deleteRootBranch(String globalTransactionId,String type);
+
+    /**
      * 根据Xid获取事务日志记录
      * @param transaction Transaction
      * @return Transaction
      */
     Transaction findByXid(Transaction transaction);
+
+    /**
+     * 获取超过持续时间的事务
+     * @param date Date
+     * @return Map<String, List<Transaction>>
+     */
+    Map<String, List<Transaction>> doFindAllUnmodified(Date date);
 }

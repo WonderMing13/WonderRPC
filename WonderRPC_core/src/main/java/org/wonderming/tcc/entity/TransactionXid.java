@@ -26,6 +26,8 @@ public class TransactionXid implements Xid, Serializable {
      */
     private byte[] branchQualifier;
 
+    public TransactionXid(){}
+
     public TransactionXid(byte[] globalTransactionId,byte[] branchQualifier){
         this.globalTransactionId = globalTransactionId;
         this.branchQualifier = branchQualifier;

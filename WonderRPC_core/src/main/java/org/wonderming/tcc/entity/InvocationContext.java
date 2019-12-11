@@ -2,6 +2,7 @@ package org.wonderming.tcc.entity;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.wonderming.exception.InvokeException;
 import org.wonderming.utils.ApplicationContextUtil;
 
 import java.io.Serializable;
@@ -41,7 +42,7 @@ public class InvocationContext implements Serializable {
             final Method method = aClass.getMethod(methodName, parameterTypes);
             method.invoke(bean,param);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new InvokeException("local invoke error",e);
         }
     }
 }

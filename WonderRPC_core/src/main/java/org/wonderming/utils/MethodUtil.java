@@ -4,6 +4,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.wonderming.annotation.TccTransaction;
+import org.wonderming.tcc.TransactionConfiguration;
+import org.wonderming.tcc.entity.Transaction;
 import org.wonderming.tcc.entity.TransactionContext;
 import org.wonderming.tcc.type.MethodType;
 import org.wonderming.tcc.type.PropagationType;
@@ -32,15 +34,21 @@ public class MethodUtil {
     }
 
     public static MethodType getMethodType(TransactionContext transactionContext,TccTransaction tccTransaction) {
-        if (transactionContext == null && tccTransaction.type() == MethodType.ROOT){
+        if (transactionContext == null && tccTransaction.type() == MethodType.ROOT) {
             //事务传播上下文为空且存在TccTransaction注解则为ROOT根事务
             return MethodType.ROOT;
-        }else if (transactionContext != null && tccTransaction.type() == MethodType.PROVIDER){
+        } else if (transactionContext != null && tccTransaction.type() == MethodType.PROVIDER) {
             //事务传播上下文不为空且存在TccTransaction注解则为PROVIDER事务
             return MethodType.PROVIDER;
-        }else {
+        } else {
             return MethodType.NORMAL;
         }
+    }
+
+    public static TransactionContext getConsumerTransactionContext(){
+        final TransactionConfiguration transactionConfiguration = ApplicationContextUtil.getBean(TransactionConfiguration.class);
+        final Transaction currentTransaction = transactionConfiguration.getTransactionManager().getCurrentTransaction();
+        return new TransactionContext(currentTransaction.getXid(),currentTransaction.getStatus());
     }
 
 

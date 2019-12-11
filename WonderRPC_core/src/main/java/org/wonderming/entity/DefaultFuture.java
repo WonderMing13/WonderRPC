@@ -1,6 +1,7 @@
 package org.wonderming.entity;
 
 import lombok.Data;
+import org.wonderming.exception.InvokeException;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +44,7 @@ public class DefaultFuture implements RpcFuture<RpcResponse>{
     }
 
     @Override
-    public RpcResponse get(int timeOut) throws TimeoutException {
+    public RpcResponse get(int timeOut){
         //检测服务提供方是否成功返回了调用结果
         if (!isDone()){
             long start = System.currentTimeMillis();
@@ -65,7 +66,7 @@ public class DefaultFuture implements RpcFuture<RpcResponse>{
             }
             // 如果调用结果仍未返回，则抛出超时异常
             if (!isDone()) {
-                throw new TimeoutException("调用超时");
+                throw new InvokeException("remote invoke timeout/maybe remote invoke error");
             }
         }
         return this.rpcResponse;

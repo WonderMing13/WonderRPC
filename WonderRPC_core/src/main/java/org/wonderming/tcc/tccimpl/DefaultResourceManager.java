@@ -6,6 +6,10 @@ import org.wonderming.tcc.ResourceManager;
 import org.wonderming.tcc.entity.Transaction;
 import org.wonderming.utils.ApplicationContextUtil;
 
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author wangdeming
  * @date 2019-11-22 14:33
@@ -32,7 +36,17 @@ public class DefaultResourceManager implements ResourceManager {
     }
 
     @Override
+    public int deleteRootBranch(String globalTransactionId, String type) {
+        return getServiceConfiguration().deleteRootBranch(globalTransactionId,type);
+    }
+
+    @Override
     public Transaction findByXid(Transaction transaction) {
         return getServiceConfiguration().findByXid(transaction);
+    }
+
+    @Override
+    public Map<String, List<Transaction>> doFindAllUnmodified(Date date) {
+        return getServiceConfiguration().doFindAllUnmodified(date);
     }
 }

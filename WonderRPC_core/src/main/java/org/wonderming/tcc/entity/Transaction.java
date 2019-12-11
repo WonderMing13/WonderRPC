@@ -6,6 +6,8 @@ import org.wonderming.config.client.NettyClient;
 import org.wonderming.config.configuration.ServiceConfiguration;
 import org.wonderming.entity.DefaultFuture;
 import org.wonderming.entity.RpcRequest;
+import org.wonderming.entity.RpcResponse;
+import org.wonderming.exception.InvokeException;
 import org.wonderming.tcc.type.TransactionStatus;
 import org.wonderming.tcc.type.TransactionType;
 import org.wonderming.utils.ApplicationContextUtil;
@@ -46,10 +48,6 @@ public class Transaction implements Serializable {
      */
     private Date lastUpdateTime = new Date();
     /**
-     * 事务下次处理时间,事务恢复时查该时间
-     */
-    private Date nextProcessTime = new Date();
-    /**
      * 参与者列表(一个confirm方法和一个cancel方法)
      */
     private List<Participant> participants = new ArrayList<>();
@@ -69,6 +67,11 @@ public class Transaction implements Serializable {
     public void updateVersion(){
         this.version++;
     }
+
+    /**
+     * 默认构造函数
+     */
+    public Transaction(){}
 
     /**
      * 构造函数
@@ -107,6 +110,8 @@ public class Transaction implements Serializable {
             final int delete = serviceConfiguration.deleteBranch(transactionZk);
             log.info("delete Branch transaction {},result:{}", transactionZk, delete);
         });
+        final int rootBranch = serviceConfiguration.deleteRootBranch(rootGlobalTransactionId,"branch");
+        log.info("delete Root Branch result:{}",rootBranch);
         //本地事务提交
         for (Participant participant : this.participants) {
             participant.commit();
@@ -136,24 +141,27 @@ public class Transaction implements Serializable {
             final int delete = serviceConfiguration.deleteBranch(transactionZk);
             log.info("delete Branch transaction {},result:{}", transactionZk, delete);
         });
+        final int rootBranch = serviceConfiguration.deleteRootBranch(rootGlobalTransactionId,"branch");
+        log.info("delete Root Branch result:{}",rootBranch);
         //本地事务回滚
         for (Participant participant : participants) {
             participant.rollback();
         }
     }
 
-    private void remoteInvoke(NettyClient nettyClient, InvocationContext cancelContext) {
+    private void remoteInvoke(NettyClient nettyClient, InvocationContext invocationContext) {
         final RpcRequest rpcRequest = new RpcRequest();
         rpcRequest.setRequestId(SnowflakeIdWorkerUtil.getInstance().nextId())
-                .setInterfaceName(cancelContext.getTargetClassName())
-                .setParameterTypes(cancelContext.getParameterTypes())
-                .setParam(cancelContext.getParam())
-                .setMethodName(cancelContext.getMethodName());
+                .setInterfaceName(invocationContext.getTargetClassName())
+                .setParameterTypes(invocationContext.getParameterTypes())
+                .setParam(invocationContext.getParam())
+                .setMethodName(invocationContext.getMethodName());
         try {
             final DefaultFuture defaultFuture = nettyClient.start(rpcRequest);
-            System.out.println(defaultFuture.get());
+            //远程调用超过5s视为远程commit错误
+            final RpcResponse rpcResponse = defaultFuture.get(5000);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new InvokeException("remote invoke error",e);
         }
     }
 

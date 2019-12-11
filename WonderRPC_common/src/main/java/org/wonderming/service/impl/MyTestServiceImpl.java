@@ -11,6 +11,7 @@ import org.wonderming.tcc.TransactionConfiguration;
 import org.wonderming.tcc.entity.Transaction;
 import org.wonderming.tcc.entity.TransactionContext;
 import org.wonderming.tcc.entity.TransactionXid;
+import org.wonderming.utils.MethodUtil;
 
 import javax.annotation.Resource;
 
@@ -37,9 +38,8 @@ public class MyTestServiceImpl implements MyTestService {
     @TccTransaction(confirmMethod = "test1",cancelMethod = "test2")
     public String test(){
         System.out.println("开始处理逻辑");
-        final Transaction currentTransaction = transactionConfiguration.getTransactionManager().getCurrentTransaction();
-        final String hjp = iTestService.getTest(new TransactionContext(currentTransaction.getXid(),currentTransaction.getStatus()), "HJP");
-        final String xjx = iWonderService.getWonder(new TransactionContext(currentTransaction.getXid(), currentTransaction.getStatus()), "XJX");
+        final String hjp = iTestService.getTest(MethodUtil.getConsumerTransactionContext(), "HJP");
+        final String xjx = iWonderService.getWonder(MethodUtil.getConsumerTransactionContext(), "XJX");
         System.out.println("处理完成逻辑");
         return hjp + xjx;
     }

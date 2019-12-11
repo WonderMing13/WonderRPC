@@ -39,4 +39,6 @@ public class Participant implements Serializable {
         cancelContext.invoke();
     }
 
+    public Participant(){}
+
 }

@@ -10,5 +10,5 @@ public interface RpcFuture<T> {
 
     T get();
 
-    T get(int requestTimeout) throws TimeoutException;
+    T get(int requestTimeout);
 }
