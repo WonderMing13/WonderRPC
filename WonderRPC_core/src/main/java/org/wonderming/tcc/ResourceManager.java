@@ -32,14 +32,6 @@ public interface ResourceManager {
     int delete(Transaction transaction);
 
     /**
-     * 彻底删除根事务的日志记录
-     * @param globalTransactionId String
-     * @param type String
-     * @return int
-     */
-    int deleteRootBranch(String globalTransactionId,String type);
-
-    /**
      * 根据Xid获取事务日志记录
      * @param transaction Transaction
      * @return Transaction

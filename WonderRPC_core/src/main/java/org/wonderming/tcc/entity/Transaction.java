@@ -67,6 +67,17 @@ public class Transaction implements Serializable {
     public void updateVersion(){
         this.version++;
     }
+    /**
+     * 重试次数
+     */
+    private int retriedCount = 0;
+
+    /**
+     * 添加重试次数
+     */
+    public void addRetriedCount() {
+        this.retriedCount++;
+    }
 
     /**
      * 默认构造函数
@@ -92,26 +103,28 @@ public class Transaction implements Serializable {
         //远程事务提交
         final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getBean(ServiceConfiguration.class);
         final NettyClient nettyClient = ApplicationContextUtil.getBean(NettyClient.class);
-        final List<String> branchList = serviceConfiguration.findBranch();
-        //全局唯一根事务id
-        final String rootGlobalTransactionId = branchList.stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList()).get(0);
-        //该根事务下的所有分支事务
-        final List<String> branchIdList = serviceConfiguration.findBranchId(rootGlobalTransactionId);
-        branchIdList.forEach(a->{
-            String path = String.format("%s/%s/%s/%s","/tcc","branch",rootGlobalTransactionId,a);
-            final Transaction transactionZk = serviceConfiguration.findByPath(path);
-            transactionZk.setStatus(TransactionStatus.CONFIRM);
-            final int update = serviceConfiguration.updateBranch(transactionZk);
-            log.info("update Branch transaction {},result:{}",transactionZk,update);
-            transactionZk.getParticipants().forEach(p->{
-                InvocationContext confirmContext = p.getConfirmContext();
-                remoteInvoke(nettyClient, confirmContext);
+        final List<String> list = serviceConfiguration.findBranch().stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList());
+        if (!list.isEmpty()){
+            //全局唯一根事务id
+            final String rootGlobalTransactionId = list.get(0);
+            //该根事务下的所有分支事务
+            final List<String> branchIdList = serviceConfiguration.findBranchId(rootGlobalTransactionId);
+            branchIdList.forEach(a->{
+                String path = String.format("%s/%s/%s/%s","/tcc","branch",rootGlobalTransactionId,a);
+                final Transaction transactionZk = serviceConfiguration.findByPath(path);
+                transactionZk.setStatus(TransactionStatus.CONFIRM);
+                final int update = serviceConfiguration.updateBranch(transactionZk);
+                log.info("update Branch transaction {},result:{}",transactionZk,update);
+                transactionZk.getParticipants().forEach(p->{
+                    InvocationContext confirmContext = p.getConfirmContext();
+                    remoteInvoke(nettyClient, confirmContext);
+                });
+                final int delete = serviceConfiguration.deleteBranch(transactionZk);
+                log.info("delete Branch transaction {},result:{}", transactionZk, delete);
             });
-            final int delete = serviceConfiguration.deleteBranch(transactionZk);
-            log.info("delete Branch transaction {},result:{}", transactionZk, delete);
-        });
-        final int rootBranch = serviceConfiguration.deleteRootBranch(rootGlobalTransactionId,"branch");
-        log.info("delete Root Branch result:{}",rootBranch);
+            final int rootBranch = serviceConfiguration.deleteRootBranch(rootGlobalTransactionId);
+            log.info("delete Root Branch result:{}",rootBranch);
+        }
         //本地事务提交
         for (Participant participant : this.participants) {
             participant.commit();
@@ -125,24 +138,26 @@ public class Transaction implements Serializable {
         //远程事务回滚
         final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getBean(ServiceConfiguration.class);
         final NettyClient nettyClient = ApplicationContextUtil.getBean(NettyClient.class);
-        final List<String> branchList = serviceConfiguration.findBranch();
-        final String rootGlobalTransactionId = branchList.stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList()).get(0);
-        final List<String> branchIdList = serviceConfiguration.findBranchId(rootGlobalTransactionId);
-        branchIdList.forEach(a->{
-            String path = String.format("%s/%s/%s/%s","/tcc","branch",rootGlobalTransactionId,a);
-            final Transaction transactionZk = serviceConfiguration.findByPath(path);
-            transactionZk.setStatus(TransactionStatus.CANCEL);
-            final int update = serviceConfiguration.updateBranch(transactionZk);
-            log.info("update Branch transaction {},result:{}",transactionZk,update);
-            transactionZk.getParticipants().forEach(p->{
-                final InvocationContext cancelContext = p.getCancelContext();
-                remoteInvoke(nettyClient, cancelContext);
+        final List<String> list = serviceConfiguration.findBranch().stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList());
+        if (!list.isEmpty()){
+            String rootGlobalTransactionId = list.get(0);
+            final List<String> branchIdList = serviceConfiguration.findBranchId(rootGlobalTransactionId);
+            branchIdList.forEach(a->{
+                String path = String.format("%s/%s/%s/%s","/tcc","branch",rootGlobalTransactionId,a);
+                final Transaction transactionZk = serviceConfiguration.findByPath(path);
+                transactionZk.setStatus(TransactionStatus.CANCEL);
+                final int update = serviceConfiguration.updateBranch(transactionZk);
+                log.info("update Branch transaction {},result:{}",transactionZk,update);
+                transactionZk.getParticipants().forEach(p->{
+                    final InvocationContext cancelContext = p.getCancelContext();
+                    remoteInvoke(nettyClient, cancelContext);
+                });
+                final int delete = serviceConfiguration.deleteBranch(transactionZk);
+                log.info("delete Branch transaction {},result:{}", transactionZk, delete);
             });
-            final int delete = serviceConfiguration.deleteBranch(transactionZk);
-            log.info("delete Branch transaction {},result:{}", transactionZk, delete);
-        });
-        final int rootBranch = serviceConfiguration.deleteRootBranch(rootGlobalTransactionId,"branch");
-        log.info("delete Root Branch result:{}",rootBranch);
+            final int rootBranch = serviceConfiguration.deleteRootBranch(rootGlobalTransactionId);
+            log.info("delete Root Branch result:{}",rootBranch);
+        }
         //本地事务回滚
         for (Participant participant : participants) {
             participant.rollback();

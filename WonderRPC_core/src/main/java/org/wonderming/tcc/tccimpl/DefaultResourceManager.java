@@ -36,11 +36,6 @@ public class DefaultResourceManager implements ResourceManager {
     }
 
     @Override
-    public int deleteRootBranch(String globalTransactionId, String type) {
-        return getServiceConfiguration().deleteRootBranch(globalTransactionId,type);
-    }
-
-    @Override
     public Transaction findByXid(Transaction transaction) {
         return getServiceConfiguration().findByXid(transaction);
     }

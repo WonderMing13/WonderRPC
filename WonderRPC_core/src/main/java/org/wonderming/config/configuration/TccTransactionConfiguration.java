@@ -42,14 +42,14 @@ public class TccTransactionConfiguration {
         return defaultTransactionRecovery;
     }
 
-//    @Bean
-//    public ThreadPoolTaskScheduler taskScheduler(){
-//        return new ThreadPoolTaskScheduler();
-//    }
-//
-//    @Bean
-//    public TccTransactionRecovery tccTransactionRecovery(){
-//        return new TccTransactionRecovery();
-//    }
+    @Bean
+    public ThreadPoolTaskScheduler taskScheduler(){
+        return new ThreadPoolTaskScheduler();
+    }
+
+    @Bean
+    public TccTransactionRecovery tccTransactionRecovery(){
+        return new TccTransactionRecovery();
+    }
 
 }

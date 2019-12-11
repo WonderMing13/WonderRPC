@@ -267,8 +267,8 @@ public class ServiceConfiguration {
     public int doDelete(Transaction transaction){
         final String path = getTccXidPath(transaction.getXid());
         try {
-            curatorFramework.delete()
-                            .forPath(path);
+            curatorFramework.delete().forPath(path);
+            curatorFramework.delete().forPath(String.format("%s/%s/%s",TCC_PATH,"root",new String(transaction.getXid().getGlobalTransactionId())));
             return SUCCESS;
         } catch (Exception e) {
             throw new TccTransactionException("Tcc Exception",e);
@@ -300,13 +300,50 @@ public class ServiceConfiguration {
      */
     public Map<String,List<Transaction>> doFindAllUnmodified(Date date){
         Map<String,List<Transaction>> map = new HashMap<>(16);
-        try {
-            final List<String> list = curatorFramework.getChildren().forPath(String.format("%s/%s", TCC_PATH, "root"));
-            final List<String> list1 = curatorFramework.getChildren().forPath(String.format("%s/%s", TCC_PATH, "branch"));
-        } catch (Exception e) {
-            e.printStackTrace();
+        List<Transaction> rootTransactionList = Lists.newArrayList();
+        final boolean existTransaction = this.doFindExistTransaction();
+        if (existTransaction){
+            try {
+                final List<String> rootList = curatorFramework.getChildren().forPath(String.format("%s/%s", TCC_PATH, "root"));
+                for (String str : rootList) {
+                    final String rootBranch = this.findRootId(str).get(0);
+                    String rootBranchPath = String.format("%s/%s/%s/%s",TCC_PATH,"root",str, rootBranch);
+                    rootTransactionList.add(this.findByPath(rootBranchPath));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            map.put("root",rootTransactionList.stream().filter(transaction -> transaction.getLastUpdateTime().getTime() < date.getTime()).collect(Collectors.toList()));
+        }else {
+            map.put("root",null);
         }
         return map;
+    }
+
+    /**
+     * 找出根事务
+     * @param globalId String
+     * @return List<String>
+     */
+    private List<String> findRootId(String globalId){
+        try {
+            return curatorFramework.getChildren().forPath("/tcc/root/" + globalId);
+        } catch (Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+    /**
+     * 找出所有根事务下是否有存在节点
+     * @return boolean
+     */
+    private boolean doFindExistTransaction(){
+        try {
+            final boolean root = curatorFramework.getChildren().forPath(String.format("%s/%s", TCC_PATH, "root")).isEmpty();
+            return !root;
+        } catch (Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
     }
 
     /**
@@ -386,12 +423,11 @@ public class ServiceConfiguration {
     /**
      * 根据Type来彻底删除事务日志
      * @param globalTransactionId String
-     * @param type String
      * @return int
      */
-    public int deleteRootBranch(String globalTransactionId,String type){
+    public int deleteRootBranch(String globalTransactionId){
         try {
-            curatorFramework.delete().forPath(String.format("%s/%s/%s",TCC_PATH,type,globalTransactionId));
+            curatorFramework.delete().forPath(String.format("%s/%s/%s",TCC_PATH,"branch",globalTransactionId));
             return SUCCESS;
         } catch (Exception e) {
             throw new TccTransactionException("Tcc Exception",e);

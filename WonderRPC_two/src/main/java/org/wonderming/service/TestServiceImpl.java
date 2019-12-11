@@ -23,6 +23,7 @@ public class TestServiceImpl implements TestService {
         System.out.println("transactionContext："+transactionContext);
         System.out.println("str："+str);
         return "okConfirm";
+//        throw new RuntimeException();
     }
 
     public String fuck(TransactionContext transactionContext,String str){
