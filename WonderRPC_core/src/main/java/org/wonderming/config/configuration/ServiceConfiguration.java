@@ -298,8 +298,7 @@ public class ServiceConfiguration {
      * @param date 当前时间之前的120秒的Date
      * @return Map<String,List<Transaction>>
      */
-    public Map<String,List<Transaction>> doFindAllUnmodified(Date date){
-        Map<String,List<Transaction>> map = new HashMap<>(16);
+    public List<Transaction> doFindAllUnmodified(Date date){
         List<Transaction> rootTransactionList = Lists.newArrayList();
         final boolean existTransaction = this.doFindExistTransaction();
         if (existTransaction){
@@ -313,11 +312,9 @@ public class ServiceConfiguration {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            map.put("root",rootTransactionList.stream().filter(transaction -> transaction.getLastUpdateTime().getTime() < date.getTime()).collect(Collectors.toList()));
-        }else {
-            map.put("root",null);
+          return rootTransactionList.stream().filter(transaction -> transaction.getLastUpdateTime().getTime() < date.getTime()).collect(Collectors.toList());
         }
-        return map;
+        return rootTransactionList;
     }
 
     /**

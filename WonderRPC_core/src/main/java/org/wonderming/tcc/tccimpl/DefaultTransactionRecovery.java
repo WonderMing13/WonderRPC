@@ -28,8 +28,6 @@ public class DefaultTransactionRecovery {
 
     private static final String ROOT = "root";
 
-    private static final String BRANCH = "branch";
-
     public TccProperties getTccProperties() {
         return tccProperties;
     }
@@ -42,22 +40,24 @@ public class DefaultTransactionRecovery {
         log.info("Starting Recover....");
         List<Transaction> transactionList = Lists.newArrayList();
         long timeBefore = System.currentTimeMillis() - tccProperties.getRecoveryDuration() * 1000;
-        final Map<String, List<Transaction>> map = transactionConfiguration.getResourceManager().doFindAllUnmodified(new Date(timeBefore));
-        if (map.get(ROOT) != null) {
-            final List<Transaction> rootTransactionList = map.get("root");
+        final List<Transaction> rootTransactionList = transactionConfiguration.getResourceManager().doFindAllUnmodified(new Date(timeBefore));
+        if (!rootTransactionList.isEmpty() && tccProperties.getType().equals(ROOT)) {
             rootTransactionList.forEach(transaction -> {
+                //更新时间防止其他JVM获取到
                 final int update = transactionConfiguration.getResourceManager().update(transaction);
                 if (update > 0) {
                     transactionList.add(transaction);
                 }
             });
             for (Transaction transaction:transactionList) {
+                //超过重复次数的跳过次循环,说明重复次数到头进行人工干预
                 if (transaction.getRetriedCount() > tccProperties.getMaxRetryCount()){
                     log.error(String.format("recover failed with max retry count, will not try again. txid:%s, status:%s, retried count:%d", transaction.getXid(), transaction.getStatus().getId(), transaction.getRetriedCount()));
                     continue;
                 }
                 transaction.addRetriedCount();
                 if (transaction.getStatus() == TransactionStatus.CONFIRM) {
+                    //更新新增的重试次数
                     transactionConfiguration.getResourceManager().update(transaction);
                     transaction.commit(transaction);
                 } else if (transaction.getStatus() == TransactionStatus.CANCEL) {

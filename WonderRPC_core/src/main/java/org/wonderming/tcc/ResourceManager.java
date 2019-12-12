@@ -8,24 +8,30 @@ import java.util.Map;
 
 /**
  * 事务资源管理器
+ *
  * @author wangdeming
  * @date 2019-11-18 21:29
  **/
 public interface ResourceManager {
     /**
      * 创建事务日志记录
+     *
      * @param transaction Transaction
      * @return rowEffected
      */
     int create(Transaction transaction);
+
     /**
      * 更新事务日志记录
+     *
      * @param transaction Transaction
      * @return rowEffected
      */
     int update(Transaction transaction);
+
     /**
      * 删除事务日志记录
+     *
      * @param transaction Transaction
      * @return rowEffected
      */
@@ -33,6 +39,7 @@ public interface ResourceManager {
 
     /**
      * 根据Xid获取事务日志记录
+     *
      * @param transaction Transaction
      * @return Transaction
      */
@@ -40,8 +47,9 @@ public interface ResourceManager {
 
     /**
      * 获取超过持续时间的事务
+     *
      * @param date Date
-     * @return Map<String, List<Transaction>>
+     * @return List<Transaction>
      */
-    Map<String, List<Transaction>> doFindAllUnmodified(Date date);
+    List<Transaction> doFindAllUnmodified(Date date);
 }

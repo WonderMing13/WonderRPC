@@ -103,10 +103,10 @@ public class Transaction implements Serializable {
         //远程事务提交
         final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getBean(ServiceConfiguration.class);
         final NettyClient nettyClient = ApplicationContextUtil.getBean(NettyClient.class);
-        final List<String> list = serviceConfiguration.findBranch().stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList());
-        if (!list.isEmpty()){
+        final List<String> rootList = serviceConfiguration.findBranch().stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList());
+        if (!rootList.isEmpty()){
             //全局唯一根事务id
-            final String rootGlobalTransactionId = list.get(0);
+            final String rootGlobalTransactionId = rootList.get(0);
             //该根事务下的所有分支事务
             final List<String> branchIdList = serviceConfiguration.findBranchId(rootGlobalTransactionId);
             branchIdList.forEach(a->{
@@ -138,9 +138,9 @@ public class Transaction implements Serializable {
         //远程事务回滚
         final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getBean(ServiceConfiguration.class);
         final NettyClient nettyClient = ApplicationContextUtil.getBean(NettyClient.class);
-        final List<String> list = serviceConfiguration.findBranch().stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList());
-        if (!list.isEmpty()){
-            String rootGlobalTransactionId = list.get(0);
+        final List<String> rootList = serviceConfiguration.findBranch().stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList());
+        if (!rootList.isEmpty()){
+            String rootGlobalTransactionId = rootList.get(0);
             final List<String> branchIdList = serviceConfiguration.findBranchId(rootGlobalTransactionId);
             branchIdList.forEach(a->{
                 String path = String.format("%s/%s/%s/%s","/tcc","branch",rootGlobalTransactionId,a);
@@ -175,6 +175,7 @@ public class Transaction implements Serializable {
             final DefaultFuture defaultFuture = nettyClient.start(rpcRequest);
             //远程调用超过5s视为远程commit错误
             final RpcResponse rpcResponse = defaultFuture.get(5000);
+            log.info(rpcResponse.getResult().toString());
         } catch (Exception e) {
             throw new InvokeException("remote invoke error",e);
         }

@@ -41,7 +41,7 @@ public class DefaultResourceManager implements ResourceManager {
     }
 
     @Override
-    public Map<String, List<Transaction>> doFindAllUnmodified(Date date) {
+    public List<Transaction> doFindAllUnmodified(Date date) {
         return getServiceConfiguration().doFindAllUnmodified(date);
     }
 }
