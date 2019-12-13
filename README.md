@@ -58,7 +58,7 @@ public interface ITestService {
 }
 ```
 
-**添加相关属性,routeStrategy是Zk负载均衡默认（1.随机算法Random,ConsistentHash是哈希一致性) **
+**添加相关属性,routeStrategy是Zk负载均衡默认（1.随机算法Random,ConsistentHash是哈希一致性)**
 
 ```java
 wonder:
