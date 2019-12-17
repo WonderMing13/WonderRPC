@@ -8,7 +8,6 @@ import java.lang.annotation.*;
 /**
  * Tcc事务的Try方法
  * @author wangdeming
- * @date 2019-11-16 22:35
  **/
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

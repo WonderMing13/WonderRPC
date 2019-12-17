@@ -21,10 +21,28 @@
 
 
 # How to Use
+#### 1.引入jar
+首先吐槽一下打包至maven中心库真心玄学..我尽力了但我也投降了.所以jar可以通过比较笨的办法但也是比较有效的
+###### 1.1 获取本项目jar包(太简单略过)
+###### 1.2 将获取的jar包放到项目的某个文件夹里.eg:我是idea编译器放在项目的src/main/xxx/lib下面
+###### 1.3 打开Terminal进入到jar包所放的位置 输入以下命令
 
-#### 1.远程调用
+**mvn install:install-file -Dfile=WonderRPC_core-1.0.0.jar -DgroupId=org.wonderming -DartifactId=WonderRPC_core -Dversion=1.0.0 -Dpackaging=jar**
 
-##### 1.1消费者Consumer
+
+此时jar就可以作为依赖放到maven里面啦
+
+```java
+        <dependency>
+            <groupId>org.wonderming</groupId>
+            <artifactId>WonderRPC_core</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+```
+     
+#### 2.远程调用
+
+##### 2.1消费者Consumer
 
 **消费者添加注解@EnableWonderRpc扫描消费者接口**
 
@@ -61,7 +79,7 @@ wonder:
 
 
 
-##### 1.2 提供者Provider
+##### 2.2 提供者Provider
 
 **提供者启动类添加注解@EnableWonderRpc扫描带有@Service的提供者实现**
 
@@ -98,9 +116,9 @@ wonder:
 
 
 
-#### 2.TCC分布式事务
+#### 3.TCC分布式事务
 
-##### 2.1 消费者方
+##### 3.1 消费者方
 
 **一个根事务发起调用诸多分支事务,根事务必须要添加@TccTransaction以完成Try-Confirm-Cancel,并且同一类中添加确认方法和取消方法调用的消费者接口也需要添加MethodUtil.getConsumerTransactionContext()来传递事务上下文信息**
 
@@ -147,7 +165,7 @@ wonder:
       type: root
 ```
 
-##### 2.2 提供者方
+##### 3.2 提供者方
 
 **在各自相对应的提供者实现类中实现逻辑并且标注此为提供者并且添加Try-Confirm-Cancel**
 
