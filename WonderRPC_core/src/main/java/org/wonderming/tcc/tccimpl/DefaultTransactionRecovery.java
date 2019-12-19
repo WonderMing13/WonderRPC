@@ -36,7 +36,7 @@ public class DefaultTransactionRecovery {
         this.transactionConfiguration = transactionConfiguration;
     }
 
-    public void startRecover() {
+    public synchronized void startRecover() {
         log.info("Starting Recover....");
         List<Transaction> transactionList = Lists.newArrayList();
         long timeBefore = System.currentTimeMillis() - tccProperties.getRecoveryDuration() * 1000;

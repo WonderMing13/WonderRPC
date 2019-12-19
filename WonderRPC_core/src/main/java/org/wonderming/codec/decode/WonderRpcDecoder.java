@@ -42,49 +42,4 @@ public class WonderRpcDecoder extends ByteToMessageDecoder {
         Object obj = SerializerEngine.deserialize(data, genericClass,SerializerEnum.JavaSerializer);
         list.add(obj);
     }
-
-//    /**
-//     * maxFrameLength: 表示的是包的最大长度
-//     * lengthFieldOffset: 表示的是长度域的偏移量
-//     * lengthFieldLength: 表示记录该帧数据长度的字段本身的长度
-//     * lengthAdjustment: 表示该字段加长度字段等于数据帧的长度
-//     */
-//    public WonderRpcDecoder(int maxFrameLength) {
-//        super(maxFrameLength, 0, 4, 0, 4);
-//    }
-//
-//    /**
-//     * 1.引用计数
-//     * 2.读取字节
-//     * 3.释放引用对象回归对象池
-//     * @param context ChannelHandlerContext
-//     * @param in ByteBuf
-//     * @return Object
-//     */
-//    @Override
-//    public Object decode(ChannelHandlerContext context, ByteBuf in){
-//        Object object = null;
-//        ByteBuf byteBuf = null;
-//        try {
-//            //调用LengthFieldBasedFrameDecoder处理粘包问题
-//            Object decode = super.decode(context,in);
-//            if(decode == null){
-//                return null;
-//            }
-//            byteBuf = (ByteBuf) decode;
-//            final int startIndex = byteBuf.readerIndex();
-//            final int endIndex = startIndex + byteBuf.readableBytes();
-//            byte[] bytes = new byte[endIndex - startIndex];
-//            //ByteBuf缓冲区写入字节数组中
-//            byteBuf.readBytes(bytes);
-//            //反序列化字节
-//            object = SerializerEngine.deserialize(bytes, RpcResponse.class,SerializerEnum.JavaSerializer);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }finally {
-//            //释放引用对象 GC回收
-//            ReferenceCountUtil.release(byteBuf);
-//        }
-//        return object;
-//    }
 }
