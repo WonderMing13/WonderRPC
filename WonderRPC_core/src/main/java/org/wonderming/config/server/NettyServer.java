@@ -39,6 +39,9 @@ public class NettyServer {
     @Autowired
     private NettyServerProperties nettyServerProperties;
 
+    @Autowired
+    private NettyServerHandler nettyServerHandler;
+
     private static ThreadPoolExecutor threadPoolExecutor;
 
     private static ThreadFactory namedBossThreadFactory = new ThreadFactoryBuilder().setNameFormat("wonderRpc-netty-server-boss").setDaemon(false).build();
@@ -64,7 +67,7 @@ public class NettyServer {
                             ch.pipeline()
                                     .addLast(new LengthFieldBasedFrameDecoder(65536, 0, 4, 0, 0))
                                     .addLast(new WonderRpcDecoder(RpcRequest.class))
-                                    .addLast(new NettyServerHandler())
+                                    .addLast(nettyServerHandler)
                                     .addLast(new WonderRpcEncoder(RpcResponse.class));
                         }
                     }).option(ChannelOption.SO_BACKLOG, 128)
@@ -87,6 +90,7 @@ public class NettyServer {
     }
 
     /**
+     * 类锁相当于在静态方法上加锁
      * 锁定NettyServer,handler的逻辑交给线程池处理
      * @param runnable Runnable
      */

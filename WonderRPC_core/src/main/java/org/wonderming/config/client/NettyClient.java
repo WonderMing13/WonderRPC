@@ -47,6 +47,9 @@ public class NettyClient {
     @Autowired
     private NettyClientProperties nettyClientProperties;
 
+    @Autowired
+    private NettyClientHandler nettyClientHandler;
+
     private static ThreadFactory namedThreadFactory  = new ThreadFactoryBuilder().setNameFormat("Rpc-netty-client").setDaemon(false).build();
 
     private static EventLoopGroup workGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2,namedThreadFactory);
@@ -73,7 +76,7 @@ public class NettyClient {
                                         .addLast(new WonderRpcEncoder(RpcRequest.class))
                                         .addLast(new LengthFieldBasedFrameDecoder(65536, 0, 4, 0, 0))
                                         .addLast(new WonderRpcDecoder(RpcResponse.class))
-                                        .addLast(new NettyClientHandler());
+                                        .addLast(nettyClientHandler);
                             }
                         });
                 ChannelFuture f = b.connect(inetSocketAddress).sync();

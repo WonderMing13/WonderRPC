@@ -1,9 +1,11 @@
 package org.wonderming.codec.encode;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.ReferenceCountUtil;
+import org.springframework.stereotype.Component;
 import org.wonderming.entity.RpcResponse;
 import org.wonderming.exception.SerializerException;
 import org.wonderming.serializer.SerializerEngine;
@@ -15,6 +17,8 @@ import java.io.Serializable;
  * @author wangdeming
  * @date 2019-09-19 14:07
  **/
+@Component
+@ChannelHandler.Sharable
 public class WonderRpcEncoder extends MessageToByteEncoder<Object> {
 
     private Class<?> genericClass;

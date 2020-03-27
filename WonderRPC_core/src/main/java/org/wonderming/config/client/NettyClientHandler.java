@@ -1,8 +1,10 @@
 package org.wonderming.config.client;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.wonderming.entity.DefaultFuture;
 import org.wonderming.entity.RpcResponse;
 import org.wonderming.utils.JsonUtil;
@@ -12,6 +14,8 @@ import org.wonderming.utils.JsonUtil;
  * @date 2019-09-29 15:28
  **/
 @Slf4j
+@Component
+@ChannelHandler.Sharable
 public class NettyClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
 
 

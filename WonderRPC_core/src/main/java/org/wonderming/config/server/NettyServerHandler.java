@@ -1,5 +1,6 @@
 package org.wonderming.config.server;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import java.lang.reflect.Method;
  * @date 2019-09-29 15:28
  **/
 @Slf4j
+@ChannelHandler.Sharable
 public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> {
 
     @Override

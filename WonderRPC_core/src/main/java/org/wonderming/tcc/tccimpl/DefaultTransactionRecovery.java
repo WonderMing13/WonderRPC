@@ -36,6 +36,9 @@ public class DefaultTransactionRecovery {
         this.transactionConfiguration = transactionConfiguration;
     }
 
+    /**
+     * 对象锁,锁住资源
+     */
     public synchronized void startRecover() {
         log.info("Starting Recover....");
         List<Transaction> transactionList = Lists.newArrayList();

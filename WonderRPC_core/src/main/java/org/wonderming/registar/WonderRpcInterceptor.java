@@ -3,6 +3,8 @@ package org.wonderming.registar;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.wonderming.config.client.NettyClient;
 import org.wonderming.entity.DefaultFuture;
 import org.wonderming.entity.RpcFuture;

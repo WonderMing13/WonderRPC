@@ -77,8 +77,6 @@ public class DefaultTransactionManager implements TransactionManager {
             transaction.commit(transaction);
             int result = transactionConfiguration.getResourceManager().delete(transaction);
             log.info("delete Root transaction {},result:{}", transaction, result);
-//            final int rootBranch = transactionConfiguration.getResourceManager().deleteRootBranch(new String(transaction.getXid().getGlobalTransactionId()),"root");
-//            log.info("delete Root Branch result:{}",rootBranch);
             threadLocalTransaction.remove();
         } catch (Throwable commitException) {
             throw new TccTransactionException("Commit error", commitException);
@@ -93,8 +91,6 @@ public class DefaultTransactionManager implements TransactionManager {
             transaction.rollback(transaction);
             int result = transactionConfiguration.getResourceManager().delete(transaction);
             log.info("delete transaction {},result:{}", transaction, result);
-//            final int rootBranch = transactionConfiguration.getResourceManager().deleteRootBranch(new String(transaction.getXid().getGlobalTransactionId()),"root");
-//            log.info("delete Root Branch result:{}",rootBranch);
             threadLocalTransaction.remove();
         } catch (Throwable rollbackException) {
             throw new TccTransactionException("Rollback error", rollbackException);
