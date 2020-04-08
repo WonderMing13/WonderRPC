@@ -10,6 +10,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties(prefix = "wonder.tcc")
 public class TccProperties {
+    /**
+     * 事务类型Root还是Branch
+     */
     private String type;
     /**
      * 定时任务重试最多次数

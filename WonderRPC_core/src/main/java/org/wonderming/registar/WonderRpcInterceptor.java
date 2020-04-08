@@ -18,6 +18,10 @@ import java.lang.reflect.Method;
 
 /**
  * CGLIB动态代理
+ * 利用ASM开源包，对代理对象类的class文件加载进来，通过修改其字节码生成子类来处理
+ *
+ * jdk
+ * 利用拦截器(拦截器必须实现InvocationHanlder)加上反射机制生成一个实现代理接口的匿名类
  * @author wangdeming
  * @date 2019-09-11 14:39
  **/
