@@ -1,6 +1,7 @@
 package org.wonderming.entity;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.wonderming.exception.InvokeException;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,6 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author wangdeming
  * @date 2019-10-13 11:23
  **/
+@Slf4j
 @Data
 public class DefaultFuture implements RpcFuture<RpcResponse>{
     private final static ConcurrentHashMap<Long,DefaultFuture> ALL_DEFAULT_FUTURE = new ConcurrentHashMap<>();

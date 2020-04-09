@@ -177,7 +177,9 @@ public class Transaction implements Serializable {
             final DefaultFuture defaultFuture = nettyClient.start(rpcRequest);
             //远程调用超过5s视为远程commit错误
             final RpcResponse rpcResponse = defaultFuture.get(5000);
-            log.info(rpcResponse.getResult().toString());
+            if (rpcResponse.getResult() != null){
+                log.info(rpcResponse.getResult().toString());
+            }
         } catch (Exception e) {
             throw new InvokeException("remote invoke error",e);
         }

@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.wonderming.config.properties.NettyServerProperties;
 import org.wonderming.config.properties.TccProperties;
 import org.wonderming.config.properties.ZookeeperProperties;
+import org.wonderming.config.resolver.TccTransactionResolver;
 import org.wonderming.config.server.NettyServer;
 import org.wonderming.config.server.NettyServerHandler;
 import org.wonderming.config.thread.MyThreadFactory;

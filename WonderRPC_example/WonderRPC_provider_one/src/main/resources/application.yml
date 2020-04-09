@@ -1,5 +1,5 @@
 server:
-  port: 7001
+  port: 7002
 
 wonder:
   zk:
@@ -7,6 +7,6 @@ wonder:
   netty:
     server:
       host: 127.0.0.1
-      port: 8000
+      port: 8001
   tcc:
     type: branch

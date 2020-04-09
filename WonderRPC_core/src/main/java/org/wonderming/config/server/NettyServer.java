@@ -97,7 +97,7 @@ public class NettyServer {
         if (threadPoolExecutor == null) {
             synchronized (NettyServer.class) {
                 if (threadPoolExecutor == null) {
-                    threadPoolExecutor = MyThreadFactory.getExecutor();
+                    threadPoolExecutor = MyThreadFactory.getCustomizeExecutor();
                 }
             }
         }

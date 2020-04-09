@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.wonderming.config.recover.TccTransactionRecovery;
+import org.wonderming.config.resolver.TccResourceResolver;
+import org.wonderming.config.resolver.TccTransactionResolver;
 import org.wonderming.config.thread.MyThreadFactory;
 import org.wonderming.tcc.TransactionConfiguration;
 import org.wonderming.tcc.entity.InvocationContext;
@@ -35,6 +37,16 @@ public class TccTransactionConfiguration {
         df.setResourceManager(new DefaultResourceManager());
         df.setTransactionManager(new DefaultTransactionManager(df));
         return df;
+    }
+
+    @Bean
+    public TccTransactionResolver tccTransactionResolver(){
+        return new TccTransactionResolver(getConfiguration());
+    }
+
+    @Bean
+    public TccResourceResolver tccResourceResolver(){
+        return new TccResourceResolver(getConfiguration());
     }
 
     @Bean

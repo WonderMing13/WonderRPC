@@ -23,15 +23,12 @@ public class MyThreadFactory {
     }
 
     public static ThreadPoolExecutor getCustomizeExecutor(){
-        ThreadFactory threadFactory = new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                Thread thread = new Thread(r);
-                //设置守护线程 主线程退出撕毁线程池
-                thread.setDaemon(true);
-                log.info("线程池创建线程 :" + thread);
-                return thread;
-            }
+        ThreadFactory threadFactory = r -> {
+            Thread thread = new Thread(r);
+            //设置守护线程 主线程退出撕毁线程池
+            thread.setDaemon(true);
+            log.info("线程池创建线程 :" + thread);
+            return thread;
         };
 
         return new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
@@ -41,21 +38,6 @@ public class MyThreadFactory {
                 new SynchronousQueue<>(),
                 threadFactory,
                 new ThreadPoolExecutor.DiscardPolicy()){
-
-            @Override
-            protected void beforeExecute(Thread t, Runnable r) {
-                System.out.println("准备执行: " + t.getName());
-            }
-
-            @Override
-            protected void afterExecute(Runnable r, Throwable t) {
-                System.out.println("执行完毕: ");
-            }
-
-            @Override
-            protected void terminated() {
-                System.out.println("中断执行:");
-            }
 
             @Override
             public void execute(Runnable command) {
@@ -72,14 +54,11 @@ public class MyThreadFactory {
             }
 
             private Runnable wrap(final Runnable task,final Exception clientTrace,String threadName){
-                return new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            task.run();
-                        }catch (Exception e){
-                            e.printStackTrace();
-                        }
+                return () -> {
+                    try {
+                        task.run();
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
                 };
             }

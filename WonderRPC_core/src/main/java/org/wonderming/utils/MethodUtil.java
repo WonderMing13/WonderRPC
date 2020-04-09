@@ -49,7 +49,10 @@ public class MethodUtil {
     public static TransactionContext getConsumerTransactionContext(){
         final TransactionConfiguration transactionConfiguration = ApplicationContextUtil.getApplicationContext().getBean(TransactionConfiguration.class);
         final Transaction currentTransaction = transactionConfiguration.getTransactionManager().getCurrentTransaction();
-        return new TransactionContext(currentTransaction.getXid(),currentTransaction.getStatus());
+        if (currentTransaction != null){
+            return new TransactionContext(currentTransaction.getXid(),currentTransaction.getStatus());
+        }
+        return null;
     }
 
 

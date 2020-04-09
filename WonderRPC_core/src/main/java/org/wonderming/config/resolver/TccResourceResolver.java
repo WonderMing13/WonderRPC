@@ -25,7 +25,6 @@ import java.lang.reflect.Method;
  **/
 @Slf4j
 @Aspect
-@Component
 public class TccResourceResolver implements Ordered {
 
     private final TransactionConfiguration transactionConfiguration;
