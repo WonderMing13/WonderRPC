@@ -46,7 +46,7 @@ public class WonderRpcInterceptor implements MethodInterceptor {
         final int requestTimeout = (int) mutablePropertyValues.get("requestTimeout");
         final RpcRequest rpcRequest = new RpcRequest();
         rpcRequest.setRequestId(SnowflakeIdWorkerUtil.getInstance().nextId()).setInterfaceName(proxyClass).setParam(invocation.getArguments()).setMethodName(method.getName()).setParameterTypes(method.getParameterTypes());
-        NettyClient nettyClient = ApplicationContextUtil.getBean(NettyClient.class);
+        NettyClient nettyClient = ApplicationContextUtil.getApplicationContext().getBean(NettyClient.class);
         final DefaultFuture defaultFuture = nettyClient.start(rpcRequest);
         //同步调用阻塞,最多阻塞3s真男人
         if (isSync){

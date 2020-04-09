@@ -10,10 +10,13 @@ import org.springframework.scheduling.support.CronTrigger;
 import org.wonderming.config.recover.TccTransactionRecovery;
 import org.wonderming.config.thread.MyThreadFactory;
 import org.wonderming.tcc.TransactionConfiguration;
+import org.wonderming.tcc.entity.InvocationContext;
 import org.wonderming.tcc.tccimpl.DefaultResourceManager;
 import org.wonderming.tcc.tccimpl.DefaultTransactionConfiguration;
 import org.wonderming.tcc.tccimpl.DefaultTransactionManager;
 import org.wonderming.tcc.tccimpl.DefaultTransactionRecovery;
+import org.wonderming.utils.ApplicationContextUtil;
+import org.wonderming.utils.MethodUtil;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;

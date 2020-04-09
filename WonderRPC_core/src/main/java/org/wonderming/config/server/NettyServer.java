@@ -21,6 +21,7 @@ import org.wonderming.config.properties.NettyServerProperties;
 import org.wonderming.entity.RpcRequest;
 import org.wonderming.entity.RpcResponse;
 
+import javax.annotation.Resource;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -39,8 +40,6 @@ public class NettyServer {
     @Autowired
     private NettyServerProperties nettyServerProperties;
 
-    @Autowired
-    private NettyServerHandler nettyServerHandler;
 
     private static ThreadPoolExecutor threadPoolExecutor;
 
@@ -67,7 +66,7 @@ public class NettyServer {
                             ch.pipeline()
                                     .addLast(new LengthFieldBasedFrameDecoder(65536, 0, 4, 0, 0))
                                     .addLast(new WonderRpcDecoder(RpcRequest.class))
-                                    .addLast(nettyServerHandler)
+                                    .addLast(new NettyServerHandler())
                                     .addLast(new WonderRpcEncoder(RpcResponse.class));
                         }
                     }).option(ChannelOption.SO_BACKLOG, 128)

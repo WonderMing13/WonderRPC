@@ -3,6 +3,7 @@ package org.wonderming.utils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.wonderming.annotation.TccTransaction;
 import org.wonderming.tcc.TransactionConfiguration;
 import org.wonderming.tcc.entity.Transaction;
@@ -46,7 +47,7 @@ public class MethodUtil {
     }
 
     public static TransactionContext getConsumerTransactionContext(){
-        final TransactionConfiguration transactionConfiguration = ApplicationContextUtil.getBean(TransactionConfiguration.class);
+        final TransactionConfiguration transactionConfiguration = ApplicationContextUtil.getApplicationContext().getBean(TransactionConfiguration.class);
         final Transaction currentTransaction = transactionConfiguration.getTransactionManager().getCurrentTransaction();
         return new TransactionContext(currentTransaction.getXid(),currentTransaction.getStatus());
     }

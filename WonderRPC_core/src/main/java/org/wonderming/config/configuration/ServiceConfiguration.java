@@ -37,6 +37,7 @@ import org.wonderming.tcc.entity.TransactionXid;
 import org.wonderming.utils.ApplicationContextUtil;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -132,7 +133,7 @@ public class ServiceConfiguration {
     public void registerService(NettyServerProperties nettyServerProperties){
         String addressStr = nettyServerProperties.getHost() + ":" + nettyServerProperties.getPort();
         //将提供者的本地服务service装载进IOC容器
-        final Map<String, Object> beansWithAnnotation = ApplicationContextUtil.getBeansWithAnnotation(Service.class);
+        final Map<String, Object> beansWithAnnotation = ApplicationContextUtil.getApplicationContext().getBeansWithAnnotation(Service.class);
         for (Object bean: beansWithAnnotation.values()) {
             final String interfaceName = bean.getClass().getCanonicalName();
             final String interfaceStr = getServicePath(getInterfaceName(interfaceName));

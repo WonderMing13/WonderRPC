@@ -1,11 +1,14 @@
 package org.wonderming.tcc.tccimpl;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.wonderming.config.configuration.ServiceConfiguration;
 import org.wonderming.tcc.ResourceManager;
 import org.wonderming.tcc.entity.Transaction;
 import org.wonderming.utils.ApplicationContextUtil;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +20,7 @@ import java.util.Map;
 public class DefaultResourceManager implements ResourceManager {
 
     private ServiceConfiguration getServiceConfiguration(){
-        return ApplicationContextUtil.getBean(ServiceConfiguration.class);
+        return ApplicationContextUtil.getApplicationContext().getBean(ServiceConfiguration.class);
     }
 
     @Override

@@ -13,14 +13,21 @@ import java.util.Map;
  * @author wangdeming
  * @date 2019-09-30 16:03
  **/
-@Component
 public class ApplicationContextUtil implements ApplicationContextAware {
 
-    private static ApplicationContext applicationContext;
+    private ApplicationContext applicationContext;
+
+    private static ApplicationContext newApplicationContext;
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-            ApplicationContextUtil.applicationContext = applicationContext;
+    public void setApplicationContext(ApplicationContext ac) throws BeansException {
+            applicationContext = ac;
+            newApplicationContext = applicationContext;
+    }
+
+    //获取applicationContext
+    public  static ApplicationContext getApplicationContext() {
+        return newApplicationContext;
     }
 
 
@@ -29,7 +36,7 @@ public class ApplicationContextUtil implements ApplicationContextAware {
      * @param name bean的名称
      * @return Object
      */
-    public static Object getBean(String name){
+    public Object getBean(String name){
         return applicationContext.getBean(name);
     }
 
@@ -39,7 +46,7 @@ public class ApplicationContextUtil implements ApplicationContextAware {
      * @param <T> 类的泛型
      * @return 返回类型
      */
-    public static  <T> T getBean(Class<T> tClass){
+    public  <T> T getBean(Class<T> tClass){
         return applicationContext.getBean(tClass);
     }
 
@@ -50,11 +57,11 @@ public class ApplicationContextUtil implements ApplicationContextAware {
      * @param <T>
      * @return
      */
-    public static  <T> Map<String, T> getBeansOfType(Class<T> clazz) {
+    public  <T> Map<String, T> getBeansOfType(Class<T> clazz) {
         return applicationContext.getBeansOfType(clazz);
     }
 
-    public static Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> annotation){
+    public  Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> annotation){
         return applicationContext.getBeansWithAnnotation(annotation);
     }
 }

@@ -14,8 +14,6 @@ import org.wonderming.utils.JsonUtil;
  * @date 2019-09-29 15:28
  **/
 @Slf4j
-@Component
-@ChannelHandler.Sharable
 public class NettyClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
 
 

@@ -6,9 +6,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.wonderming.config.properties.NettyServerProperties;
+import org.wonderming.config.properties.TccProperties;
 import org.wonderming.config.properties.ZookeeperProperties;
 import org.wonderming.config.server.NettyServer;
+import org.wonderming.config.server.NettyServerHandler;
 import org.wonderming.config.thread.MyThreadFactory;
+import org.wonderming.utils.ApplicationContextUtil;
 
 
 /**
@@ -29,6 +32,17 @@ public class NettyServerConfiguration {
     @ConditionalOnMissingBean
     public ZookeeperProperties zookeeperProperties(){
         return new ZookeeperProperties();
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "wonder.tcc",name = {"type"},matchIfMissing = true)
+    public TccProperties tccProperties(){
+        return new TccProperties();
+    }
+
+    @Bean
+    public ApplicationContextUtil applicationContextUtil(){
+        return new ApplicationContextUtil();
     }
 
     @Bean

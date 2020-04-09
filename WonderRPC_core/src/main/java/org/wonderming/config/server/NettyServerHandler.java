@@ -4,12 +4,14 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.wonderming.annotation.TccTransaction;
 import org.wonderming.config.thread.MyThreadFactory;
 import org.wonderming.entity.RpcRequest;
 import org.wonderming.entity.RpcResponse;
 import org.wonderming.utils.ApplicationContextUtil;
 
+import javax.annotation.Resource;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -18,7 +20,6 @@ import java.lang.reflect.Method;
  * @date 2019-09-29 15:28
  **/
 @Slf4j
-@ChannelHandler.Sharable
 public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> {
 
     @Override
@@ -27,7 +28,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> 
         NettyServer.submit(()->{
             final RpcResponse rpcResponse = new RpcResponse();
             try {
-                Object bean = ApplicationContextUtil.getBean(Class.forName(rpcRequest.getInterfaceName()));
+                Object bean = ApplicationContextUtil.getApplicationContext().getBean(Class.forName(rpcRequest.getInterfaceName()));
                 final Class<?> aClass = bean.getClass();
                 final Method proxyMethod = aClass.getMethod(rpcRequest.getMethodName(),rpcRequest.getParameterTypes());
                 final Object result = proxyMethod.invoke(bean, rpcRequest.getParam());

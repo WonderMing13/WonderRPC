@@ -2,6 +2,7 @@ package org.wonderming.tcc.entity;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.wonderming.config.client.NettyClient;
 import org.wonderming.config.configuration.ServiceConfiguration;
 import org.wonderming.entity.DefaultFuture;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Data
 public class Transaction implements Serializable {
+
     /**
      * 事务Xid
      */
@@ -101,8 +103,8 @@ public class Transaction implements Serializable {
      */
     public void commit(Transaction transaction) {
         //远程事务提交
-        final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getBean(ServiceConfiguration.class);
-        final NettyClient nettyClient = ApplicationContextUtil.getBean(NettyClient.class);
+        final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getApplicationContext().getBean(ServiceConfiguration.class);
+        final NettyClient nettyClient = ApplicationContextUtil.getApplicationContext().getBean(NettyClient.class);
         final List<String> rootList = serviceConfiguration.findBranch().stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList());
         if (!rootList.isEmpty()){
             //全局唯一根事务id
@@ -136,8 +138,8 @@ public class Transaction implements Serializable {
      */
     public void rollback(Transaction transaction) {
         //远程事务回滚
-        final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getBean(ServiceConfiguration.class);
-        final NettyClient nettyClient = ApplicationContextUtil.getBean(NettyClient.class);
+        final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getApplicationContext().getBean(ServiceConfiguration.class);
+        final NettyClient nettyClient = ApplicationContextUtil.getApplicationContext().getBean(NettyClient.class);
         final List<String> rootList = serviceConfiguration.findBranch().stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList());
         if (!rootList.isEmpty()){
             String rootGlobalTransactionId = rootList.get(0);

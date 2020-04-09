@@ -12,6 +12,7 @@ import org.wonderming.config.properties.NettyClientProperties;
 import org.wonderming.config.properties.NettyServerProperties;
 import org.wonderming.config.properties.TccProperties;
 import org.wonderming.config.properties.ZookeeperProperties;
+import org.wonderming.utils.ApplicationContextUtil;
 
 /**
  * @author wangdeming
@@ -34,9 +35,14 @@ public class NettyClientConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(prefix = "wonder.tcc",name = {"type"})
+    @ConditionalOnProperty(prefix = "wonder.tcc",name = {"type"},matchIfMissing = true)
     public TccProperties tccProperties(){
         return new TccProperties();
+    }
+
+    @Bean
+    public ApplicationContextUtil applicationContextUtil(){
+        return new ApplicationContextUtil();
     }
 
     @Bean

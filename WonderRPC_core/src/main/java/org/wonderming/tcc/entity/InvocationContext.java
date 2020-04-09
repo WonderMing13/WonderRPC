@@ -2,6 +2,7 @@ package org.wonderming.tcc.entity;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.wonderming.exception.InvokeException;
 import org.wonderming.utils.ApplicationContextUtil;
 
@@ -15,6 +16,7 @@ import java.lang.reflect.Method;
 @Accessors(chain = true)
 @Data
 public class InvocationContext implements Serializable {
+
     /**
      * 目标类名
      */
@@ -37,7 +39,7 @@ public class InvocationContext implements Serializable {
     void invoke(){
         try {
             final Class<?> targetClass = Class.forName(targetClassName);
-            final Object bean = ApplicationContextUtil.getBean(targetClass);
+            final Object bean = ApplicationContextUtil.getApplicationContext().getBean(targetClass);
             final Class<?> aClass = bean.getClass();
             final Method method = aClass.getMethod(methodName, parameterTypes);
             method.invoke(bean,param);

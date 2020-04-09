@@ -28,6 +28,7 @@ import org.wonderming.entity.RpcRequest;
 import org.wonderming.entity.RpcResponse;
 import org.wonderming.strategy.RouteEnum;
 
+import javax.annotation.Resource;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -47,8 +48,6 @@ public class NettyClient {
     @Autowired
     private NettyClientProperties nettyClientProperties;
 
-    @Autowired
-    private NettyClientHandler nettyClientHandler;
 
     private static ThreadFactory namedThreadFactory  = new ThreadFactoryBuilder().setNameFormat("Rpc-netty-client").setDaemon(false).build();
 
@@ -76,7 +75,7 @@ public class NettyClient {
                                         .addLast(new WonderRpcEncoder(RpcRequest.class))
                                         .addLast(new LengthFieldBasedFrameDecoder(65536, 0, 4, 0, 0))
                                         .addLast(new WonderRpcDecoder(RpcResponse.class))
-                                        .addLast(nettyClientHandler);
+                                        .addLast(new NettyClientHandler());
                             }
                         });
                 ChannelFuture f = b.connect(inetSocketAddress).sync();

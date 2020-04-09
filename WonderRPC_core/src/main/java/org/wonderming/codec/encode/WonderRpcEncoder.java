@@ -17,8 +17,6 @@ import java.io.Serializable;
  * @author wangdeming
  * @date 2019-09-19 14:07
  **/
-@Component
-@ChannelHandler.Sharable
 public class WonderRpcEncoder extends MessageToByteEncoder<Object> {
 
     private Class<?> genericClass;
