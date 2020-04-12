@@ -261,6 +261,29 @@ public class ServiceConfiguration {
     }
 
     /**
+     * 更新主分支事务记录
+     * @param transaction Transaction
+     * @return int
+     */
+    public int updateRoot(Transaction transaction){
+        try {
+            String path = String.format("%s/%s/%s/%s",TCC_PATH,"root",new String(transaction.getXid().getGlobalTransactionId()),new String(transaction.getXid().getBranchQualifier()));
+            transaction.updateLastUpdateTime();
+            transaction.updateVersion();
+            //通过setData的version实现乐观锁控制。事务对象的version从1开始，zkVersion从0开始。所以要 -2
+            //version不一样时会报错
+            curatorFramework.setData()
+                    .withVersion(transaction.getVersion() - 2)
+                    .forPath(path,SerializerEngine.serialize(transaction,SerializerEnum.JavaSerializer));
+            return SUCCESS;
+        } catch (KeeperException.BadVersionException version) {
+            throw new OptimisticLockException("OptimisticLock Bad Version");
+        } catch (Exception e){
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+    /**
      * 删除事务记录
      * @param transaction Transaction
      * @return int
@@ -323,7 +346,7 @@ public class ServiceConfiguration {
      * @param globalId String
      * @return List<String>
      */
-    private List<String> findRootId(String globalId){
+    public List<String> findRootId(String globalId){
         try {
             return curatorFramework.getChildren().forPath("/tcc/root/" + globalId);
         } catch (Exception e) {

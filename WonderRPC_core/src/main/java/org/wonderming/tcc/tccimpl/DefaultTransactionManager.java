@@ -1,6 +1,7 @@
 package org.wonderming.tcc.tccimpl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.wonderming.config.configuration.ServiceConfiguration;
 import org.wonderming.config.thread.MyThreadFactory;
 import org.wonderming.exception.TccTransactionException;
 import org.wonderming.tcc.entity.Transaction;
@@ -10,6 +11,7 @@ import org.wonderming.tcc.type.TransactionStatus;
 import org.wonderming.tcc.TransactionConfiguration;
 import org.wonderming.tcc.TransactionManager;
 import org.wonderming.tcc.type.TransactionType;
+import org.wonderming.utils.ApplicationContextUtil;
 import org.wonderming.utils.SnowflakeIdWorkerUtil;
 
 /**
@@ -67,6 +69,15 @@ public class DefaultTransactionManager implements TransactionManager {
     public Transaction getCurrentTransaction() {
         return threadLocalTransaction.get();
     }
+
+    @Override
+    public void update(Transaction transaction) {
+        final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getApplicationContext().getBean(ServiceConfiguration.class);
+        final int updateRoot = serviceConfiguration.updateRoot(transaction);
+        threadLocalTransaction.set(transaction);
+        log.info("update Root error transaction {},result:{}",transaction,updateRoot);
+    }
+
 
     @Override
     public void commit(Transaction transaction) {

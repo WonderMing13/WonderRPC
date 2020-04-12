@@ -26,9 +26,10 @@ public class ConsumerTccServiceImpl implements ConsumerTccService {
     public String testTcc() {
         System.out.println("开始执行");
         final String testStr = consumerTestService.test(MethodUtil.getConsumerTransactionContext());
-        final String helloStr = consumerOneTestService.test(MethodUtil.getConsumerTransactionContext());
+        final String oneTestStr = consumerOneTestService.test(MethodUtil.getConsumerTransactionContext());
         System.out.println("结束执行");
-        return testStr + helloStr;
+        throw new RuntimeException("错误");
+//        return oneTestStr + testStr;
     }
 
     public void confirmTcc(){

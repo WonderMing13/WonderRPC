@@ -25,5 +25,5 @@ public class TccProperties {
     /**
      * 每隔一分钟执行一次
      */
-    private String cronExpression = "0 */1 * * * ?";
+    private String cronExpression = "0 */2 * * * ?";
 }

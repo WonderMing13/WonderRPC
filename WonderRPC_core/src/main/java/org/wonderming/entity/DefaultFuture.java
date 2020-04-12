@@ -46,7 +46,7 @@ public class DefaultFuture implements RpcFuture<RpcResponse>{
     }
 
     @Override
-    public RpcResponse get(int timeOut){
+    public RpcResponse get(int timeOut) throws Exception{
         //检测服务提供方是否成功返回了调用结果
         if (!isDone()){
             long start = System.currentTimeMillis();

@@ -16,7 +16,8 @@ public class ProviderOneTestServiceImpl implements ProviderOneTestService {
     @TccTransaction(confirmMethod = "confirmTest",cancelMethod = "cancelTest",type = MethodType.PROVIDER)
     public String test(TransactionContext transactionContext) {
         System.out.println("xx");
-        throw new RuntimeException();
+        return "xjx";
+//        throw new RuntimeException("错误");
     }
 
     public void confirmTest(TransactionContext transactionContext){

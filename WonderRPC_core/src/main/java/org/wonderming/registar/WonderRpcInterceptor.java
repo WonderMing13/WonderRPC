@@ -6,6 +6,7 @@ import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.wonderming.config.client.NettyClient;
+import org.wonderming.config.thread.MyThreadFactory;
 import org.wonderming.entity.DefaultFuture;
 import org.wonderming.entity.RpcFuture;
 import org.wonderming.entity.RpcRequest;
@@ -39,7 +40,7 @@ public class WonderRpcInterceptor implements MethodInterceptor {
     }
 
     @Override
-    public Object invoke(MethodInvocation invocation) throws Exception {
+    public Object invoke(MethodInvocation invocation) throws Exception{
         final Method method = invocation.getMethod();
         final String proxyClass = (String) mutablePropertyValues.get("proxyClass");
         final boolean isSync = (boolean) mutablePropertyValues.get("isSync");
@@ -47,7 +48,7 @@ public class WonderRpcInterceptor implements MethodInterceptor {
         final RpcRequest rpcRequest = new RpcRequest();
         rpcRequest.setRequestId(SnowflakeIdWorkerUtil.getInstance().nextId()).setInterfaceName(proxyClass).setParam(invocation.getArguments()).setMethodName(method.getName()).setParameterTypes(method.getParameterTypes());
         NettyClient nettyClient = ApplicationContextUtil.getApplicationContext().getBean(NettyClient.class);
-        final DefaultFuture defaultFuture = nettyClient.start(rpcRequest);
+        DefaultFuture defaultFuture = nettyClient.start(rpcRequest);
         //同步调用阻塞,最多阻塞3s真男人
         if (isSync){
             return invokeSync(defaultFuture,requestTimeout);
@@ -56,6 +57,7 @@ public class WonderRpcInterceptor implements MethodInterceptor {
             return invokeAsync(defaultFuture);
         }
     }
+
 
     /**
      * 异步调用
@@ -71,7 +73,6 @@ public class WonderRpcInterceptor implements MethodInterceptor {
      * @param defaultFuture DefaultFuture
      * @param requestTimeout 请求超时时间
      * @return Object
-     * @throws Exception 异常
      */
     private Object invokeSync(DefaultFuture defaultFuture,int requestTimeout) throws Exception {
         return defaultFuture.get(requestTimeout).getResult();

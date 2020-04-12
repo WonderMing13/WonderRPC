@@ -5,10 +5,12 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 import org.wonderming.annotation.TccTransaction;
+import org.wonderming.config.configuration.ServiceConfiguration;
 import org.wonderming.exception.TccTransactionException;
 import org.wonderming.tcc.TransactionConfiguration;
 import org.wonderming.tcc.TransactionManager;
@@ -18,10 +20,13 @@ import org.wonderming.tcc.entity.TransactionContext;
 import org.wonderming.tcc.entity.TransactionXid;
 import org.wonderming.tcc.type.MethodType;
 import org.wonderming.tcc.type.TransactionStatus;
+import org.wonderming.tcc.type.TransactionType;
+import org.wonderming.utils.ApplicationContextUtil;
 import org.wonderming.utils.AssertUtil;
 import org.wonderming.utils.MethodUtil;
 import org.wonderming.utils.SnowflakeIdWorkerUtil;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 /**
@@ -90,25 +95,57 @@ public class TccTransactionResolver implements Ordered {
         try {
             obj = joinPoint.proceed();
         } catch (Throwable throwable) {
-            //Try事务发生异常时
+            //Root Try事务发生异常时
             final Transaction transaction = transactionConfiguration.getTransactionManager().getCurrentTransaction();
             transactionManager.rollback(transaction);
             throwable.printStackTrace();
+            return obj;
         }
-        //Try事务正常执行时,执行各自的commit
+        //Root Try事务正常执行时,Provider Try事务异常时
         final Transaction transaction = transactionConfiguration.getTransactionManager().getCurrentTransaction();
-        if (transaction != null){
-            transactionManager.commit(transaction);
+        final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getApplicationContext().getBean(ServiceConfiguration.class);
+        final String str = serviceConfiguration.findRootId(new String(transaction.getXid().getGlobalTransactionId())).get(0);
+        String rootBranchPath = String.format("%s/%s/%s/%s","/tcc","root",new String(transaction.getXid().getGlobalTransactionId()), str);
+        final Transaction transactionRoot = serviceConfiguration.findByPath(rootBranchPath);
+        System.out.println(transactionRoot);
+        if (transactionRoot != null){
+            if (transactionRoot.getError() != null){
+                transactionManager.rollback(transactionRoot);
+            }else {
+                transactionManager.commit(transactionRoot);
+            }
         }
         return obj;
     }
 
 
-    private Object providerProcess(ProceedingJoinPoint joinPoint,TransactionContext transactionContext) throws Throwable {
+    private Object providerProcess(ProceedingJoinPoint joinPoint,TransactionContext transactionContext) {
+        //TRY阶段
         TransactionContext transactionContextBranch = new TransactionContext(new TransactionXid(transactionContext.getXid().getGlobalTransactionId(), SnowflakeIdWorkerUtil.newId()), transactionContext.getStatus());
         boolean isTry = transactionContextBranch.getStatus() == TransactionStatus.TRY;
         AssertUtil.isTrue(isTry);
         transactionConfiguration.getTransactionManager().begin(transactionContextBranch);
-        return joinPoint.proceed();
+        Object obj = null;
+        try {
+            obj =  joinPoint.proceed();
+        } catch (Throwable throwable) {
+            //更新分支错误异常 防止抛出异常导致后面的无法aop拦截
+            final Transaction transaction = transactionConfiguration.getTransactionManager().getCurrentTransaction();
+            transaction.setError(throwable);
+            final int update = transactionConfiguration.getResourceManager().update(transaction);
+            log.info("update Branch error transaction {},result:{}",transaction,update);
+            //更新主分支错误异常
+            final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getApplicationContext().getBean(ServiceConfiguration.class);
+            final String str = serviceConfiguration.findRootId(new String(transaction.getXid().getGlobalTransactionId())).get(0);
+            String rootBranchPath = String.format("%s/%s/%s/%s","/tcc","root",new String(transaction.getXid().getGlobalTransactionId()), str);
+            final Transaction transactionRoot = serviceConfiguration.findByPath(rootBranchPath);
+            transactionRoot.setError(throwable);
+            final int updateRoot = serviceConfiguration.updateRoot(transactionRoot);
+            log.info("update Root error transaction {},result:{}",transactionRoot,updateRoot);
+            throwable.printStackTrace();
+        }
+        Method method = ((MethodSignature) (joinPoint.getSignature())).getMethod();
+        System.out.println(method.getReturnType());
+        return obj;
     }
 }

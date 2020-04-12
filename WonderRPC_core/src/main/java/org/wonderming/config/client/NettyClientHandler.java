@@ -18,7 +18,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<RpcResponse>
 
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, RpcResponse rpcResponse) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, RpcResponse rpcResponse){
         DefaultFuture.receive(rpcResponse);
     }
 

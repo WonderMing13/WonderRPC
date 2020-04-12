@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.wonderming.config.client.NettyClient;
 import org.wonderming.config.configuration.ServiceConfiguration;
+import org.wonderming.config.thread.MyThreadFactory;
 import org.wonderming.entity.DefaultFuture;
 import org.wonderming.entity.RpcRequest;
 import org.wonderming.entity.RpcResponse;
@@ -49,6 +50,10 @@ public class Transaction implements Serializable {
      * 最后更新时间
      */
     private Date lastUpdateTime = new Date();
+    /**
+     * 提供者报错异常
+     */
+    public Throwable error;
     /**
      * 参与者列表(一个confirm方法和一个cancel方法)
      */
@@ -167,22 +172,24 @@ public class Transaction implements Serializable {
     }
 
     private void remoteInvoke(NettyClient nettyClient, InvocationContext invocationContext) {
-        final RpcRequest rpcRequest = new RpcRequest();
-        rpcRequest.setRequestId(SnowflakeIdWorkerUtil.getInstance().nextId())
-                .setInterfaceName(invocationContext.getTargetClassName())
-                .setParameterTypes(invocationContext.getParameterTypes())
-                .setParam(invocationContext.getParam())
-                .setMethodName(invocationContext.getMethodName());
-        try {
-            final DefaultFuture defaultFuture = nettyClient.start(rpcRequest);
-            //远程调用超过5s视为远程commit错误
-            final RpcResponse rpcResponse = defaultFuture.get(5000);
-            if (rpcResponse.getResult() != null){
-                log.info(rpcResponse.getResult().toString());
+        MyThreadFactory.getCustomizeExecutor().submit(()->{
+            final RpcRequest rpcRequest = new RpcRequest();
+            rpcRequest.setRequestId(SnowflakeIdWorkerUtil.getInstance().nextId())
+                    .setInterfaceName(invocationContext.getTargetClassName())
+                    .setParameterTypes(invocationContext.getParameterTypes())
+                    .setParam(invocationContext.getParam())
+                    .setMethodName(invocationContext.getMethodName());
+            try {
+                final DefaultFuture defaultFuture = nettyClient.start(rpcRequest);
+                //远程调用超过5s视为远程commit错误
+                final RpcResponse rpcResponse = defaultFuture.get(5000);
+                if (rpcResponse.getResult() != null){
+                    log.info(rpcResponse.getResult().toString());
+                }
+            } catch (Exception e) {
+                throw new InvokeException("remote invoke error",e);
             }
-        } catch (Exception e) {
-            throw new InvokeException("remote invoke error",e);
-        }
+        });
     }
 
     /**

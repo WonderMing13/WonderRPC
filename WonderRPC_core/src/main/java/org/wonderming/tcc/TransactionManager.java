@@ -34,6 +34,12 @@ public interface TransactionManager {
     Transaction getCurrentTransaction();
 
     /**
+     * 更新
+     * @param transaction Transaction
+     */
+    void update(Transaction transaction);
+
+    /**
      * 对参与者进行事务提交
      */
     void commit(Transaction transaction);
