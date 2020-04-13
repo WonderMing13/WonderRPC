@@ -6,4 +6,6 @@ package org.consumer.api.service;
 public interface ConsumerTccService {
 
     String testTcc();
+
+    void  testTransaction();
 }

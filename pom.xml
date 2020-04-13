@@ -23,6 +23,10 @@
         <curator.version>2.12.0</curator.version>
         <protostuff.version>1.5.9</protostuff.version>
         <lang3.version>3.7</lang3.version>
+
+        <mybatis-plus.version>3.1.0</mybatis-plus.version>
+        <mysql-connector.version>8.0.11</mysql-connector.version>
+        <druid.version>1.1.10</druid.version>
     </properties>
 
     <parent>
@@ -97,8 +101,29 @@
                 <version>${lang3.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
 
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql-connector.version}</version>
+            </dependency>
 
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-generator</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid-spring-boot-starter</artifactId>
+                <version>${druid.version}</version>
+            </dependency>
 
         </dependencies>
     </dependencyManagement>

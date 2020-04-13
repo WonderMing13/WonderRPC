@@ -8,7 +8,6 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>WonderRPC_example</artifactId>
     <packaging>pom</packaging>
     <modules>
@@ -16,6 +15,5 @@
         <module>WonderRPC_consumer</module>
         <module>WonderRPC_provider_one</module>
     </modules>
-
 
 </project>

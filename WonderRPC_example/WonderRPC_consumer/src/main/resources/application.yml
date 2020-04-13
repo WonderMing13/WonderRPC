@@ -1,7 +1,6 @@
 server:
   port: 7000
 
-
 wonder:
   zk:
     address: 47.102.204.172:2181
@@ -11,3 +10,28 @@ wonder:
       routeStrategy: Random
   tcc:
     type: root
+
+spring:
+  datasource:
+    druid:
+      # 初始化时建立物理连接的个数
+      initial-size: 5
+      # 最大连接池数量
+      max-active: 10
+      # 用来检测连接是否有效的sql语句
+      validation-query: SELECT 1 FROM DUAL
+      # 最小连接池数量
+      min-idle: 5
+      # 获取连接时最大等待时间，单位毫秒
+      max-wait: 60000
+      # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位毫秒
+      time-between-eviction-runs-millis: 60000
+      url: jdbc:mysql://127.0.0.1:3306/youqu?useUnicode=true&useSSL=false&characterEncoding=utf8
+      username: root
+      password: wonderming
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis-plus:
+  mapper-locations: classpath:/org/consumer/mapping/*Mapper.xml
+  type-aliases-package:
+    org.consumer.entity

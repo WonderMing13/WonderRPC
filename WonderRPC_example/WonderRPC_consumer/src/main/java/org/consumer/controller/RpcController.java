@@ -13,7 +13,7 @@ import javax.annotation.Resource;
  * @author wangdeming
  **/
 @RestController
-public class HelloController {
+public class RpcController {
 
     @Resource
     private ConsumerOneTestService consumerOneTestService;
