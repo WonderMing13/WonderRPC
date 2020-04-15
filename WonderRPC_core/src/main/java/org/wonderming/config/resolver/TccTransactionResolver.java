@@ -107,7 +107,7 @@ public class TccTransactionResolver implements Ordered {
         final String str = serviceConfiguration.findRootId(new String(transaction.getXid().getGlobalTransactionId())).get(0);
         String rootBranchPath = String.format("%s/%s/%s/%s","/tcc","root",new String(transaction.getXid().getGlobalTransactionId()), str);
         final Transaction transactionRoot = serviceConfiguration.findByPath(rootBranchPath);
-        System.out.println(transactionRoot);
+//        System.out.println(transactionRoot);
         if (transactionRoot != null){
             if (transactionRoot.getError() != null){
                 transactionManager.rollback(transactionRoot);

@@ -238,6 +238,24 @@ public class ServiceConfiguration {
     }
 
     /**
+     * 创建分支事务的commit或者error的运行异常
+     */
+    public int doCreateBranchError(Transaction transaction){
+        String branchError = String.format("%s/%s/%s/%s",TCC_PATH,"branchError",new String(transaction.getXid().getGlobalTransactionId()),new String(transaction.getXid().getBranchQualifier()));
+        try {
+            curatorFramework.create()
+                            .creatingParentsIfNeeded()
+                            .withMode(CreateMode.PERSISTENT)
+                            .forPath(branchError,SerializerEngine.serialize(transaction,SerializerEnum.JavaSerializer));
+        } catch (KeeperException.NodeExistsException node) {
+            log.info("TCC Path already Exist");
+        } catch(Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+        return SUCCESS;
+    }
+
+    /**
      * 更新事务记录
      * @param transaction Transaction
      * @return int
@@ -252,6 +270,24 @@ public class ServiceConfiguration {
             curatorFramework.setData()
                             .withVersion(transaction.getVersion() - 2)
                             .forPath(path,SerializerEngine.serialize(transaction,SerializerEnum.JavaSerializer));
+            return SUCCESS;
+        } catch (KeeperException.BadVersionException version) {
+            throw new OptimisticLockException("OptimisticLock Bad Version");
+        } catch (Exception e){
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+    public int doUpdateBranchError(Transaction transaction){
+        try {
+            String path = String.format("%s/%s/%s/%s",TCC_PATH,"branchError",new String(transaction.getXid().getGlobalTransactionId()),new String(transaction.getXid().getBranchQualifier()));
+            transaction.updateLastUpdateTime();
+            transaction.updateVersion();
+            //通过setData的version实现乐观锁控制。事务对象的version从1开始，zkVersion从0开始。所以要 -4
+            //version不一样时会报错
+                curatorFramework.setData()
+                        .withVersion(transaction.getVersion() - 4)
+                        .forPath(path,SerializerEngine.serialize(transaction,SerializerEnum.JavaSerializer));
             return SUCCESS;
         } catch (KeeperException.BadVersionException version) {
             throw new OptimisticLockException("OptimisticLock Bad Version");
@@ -300,6 +336,22 @@ public class ServiceConfiguration {
     }
 
     /**
+     * 删除branch事务commit/cacel错误
+     * @param transaction Transaction
+     * @return int
+     */
+    public int doDeleteWithBranchError(Transaction transaction){
+        final String path = String.format("%s/%s/%s/%s",TCC_PATH,"branchError",new String(transaction.getXid().getGlobalTransactionId()),new String(transaction.getXid().getBranchQualifier()));
+        try {
+            curatorFramework.delete().forPath(path);
+            curatorFramework.delete().forPath(String.format("%s/%s/%s",TCC_PATH,"branchError",new String(transaction.getXid().getGlobalTransactionId())));
+            return SUCCESS;
+        } catch (Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+    /**
      * 根据transaction信息 查找事务日志记录.
      * @param transaction  事务对象
      * @return transaction
@@ -341,6 +393,25 @@ public class ServiceConfiguration {
         return rootTransactionList;
     }
 
+    public List<Transaction> doFindAllUnmodifiedWithBranchError(Date date){
+        List<Transaction> rootTransactionList = Lists.newArrayList();
+        final boolean existTransaction = this.doFindExistTransactionWithBranchError();
+        if (existTransaction){
+            try {
+                final List<String> rootList = curatorFramework.getChildren().forPath(String.format("%s/%s", TCC_PATH, "branchError"));
+                for (String str : rootList) {
+                    final String rootBranch = this.findBranchErrorId(str).get(0);
+                    String rootBranchPath = String.format("%s/%s/%s/%s",TCC_PATH,"branchError",str, rootBranch);
+                    rootTransactionList.add(this.findByPath(rootBranchPath));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return rootTransactionList.stream().filter(transaction -> transaction.getLastUpdateTime().getTime() < date.getTime()).collect(Collectors.toList());
+        }
+        return rootTransactionList;
+    }
+
     /**
      * 找出根事务
      * @param globalId String
@@ -349,6 +420,32 @@ public class ServiceConfiguration {
     public List<String> findRootId(String globalId){
         try {
             return curatorFramework.getChildren().forPath("/tcc/root/" + globalId);
+        } catch (Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+    /**
+     * 找出分支事务提交出错的
+     * @param globalId String 全局id
+     * @return List<String>
+     */
+    public List<String> findBranchErrorId(String globalId){
+        try {
+            return curatorFramework.getChildren().forPath("/tcc/branchError/" + globalId);
+        } catch (Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+    /**
+     * 找出所有分支提交错误事务下是否有存在节点
+     * @return boolean
+     */
+    private boolean doFindExistTransactionWithBranchError(){
+        try {
+            final boolean root = curatorFramework.getChildren().forPath(String.format("%s/%s", TCC_PATH, "branchError")).isEmpty();
+            return !root;
         } catch (Exception e) {
             throw new TccTransactionException("Tcc Exception",e);
         }
@@ -393,6 +490,14 @@ public class ServiceConfiguration {
         }
     }
 
+    public List<String> findBranchWithError(){
+        try {
+            return curatorFramework.getChildren().forPath("/tcc/branchError");
+        } catch (Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
     /**
      * 根据事务的全局id来获取所有分支事务
      * @param globalId String
@@ -401,6 +506,14 @@ public class ServiceConfiguration {
     public List<String> findBranchId(String globalId){
         try {
             return curatorFramework.getChildren().forPath("/tcc/branch/" + globalId);
+        } catch (Exception e) {
+            throw new TccTransactionException("Tcc Exception",e);
+        }
+    }
+
+    public List<String> findBranchIdWithError(String globalId){
+        try {
+            return curatorFramework.getChildren().forPath("/tcc/branchError/" + globalId);
         } catch (Exception e) {
             throw new TccTransactionException("Tcc Exception",e);
         }
@@ -440,6 +553,8 @@ public class ServiceConfiguration {
             throw new TccTransactionException("Tcc Exception",e);
         }
     }
+
+
 
     /**
      * 根据Type来彻底删除事务日志

@@ -34,8 +34,18 @@ public class DefaultResourceManager implements ResourceManager {
     }
 
     @Override
+    public int updateWithBranchError(Transaction transaction) {
+        return getServiceConfiguration().doUpdateBranchError(transaction);
+    }
+
+    @Override
     public int delete(Transaction transaction) {
         return getServiceConfiguration().doDelete(transaction);
+    }
+
+    @Override
+    public int deleteWithBranchError(Transaction transaction) {
+        return getServiceConfiguration().doDeleteWithBranchError(transaction);
     }
 
     @Override
@@ -46,5 +56,10 @@ public class DefaultResourceManager implements ResourceManager {
     @Override
     public List<Transaction> doFindAllUnmodified(Date date) {
         return getServiceConfiguration().doFindAllUnmodified(date);
+    }
+
+    @Override
+    public List<Transaction> doFindAllUnmodifiedWithBranchError(Date date) {
+        return getServiceConfiguration().doFindAllUnmodifiedWithBranchError(date);
     }
 }

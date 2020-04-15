@@ -104,7 +104,7 @@ public class Transaction implements Serializable {
     }
 
     /**
-     * 事务提交
+     * 全体事务提交
      */
     public void commit(Transaction transaction) {
         //远程事务提交
@@ -116,15 +116,21 @@ public class Transaction implements Serializable {
             final String rootGlobalTransactionId = rootList.get(0);
             //该根事务下的所有分支事务
             final List<String> branchIdList = serviceConfiguration.findBranchId(rootGlobalTransactionId);
-            branchIdList.forEach(a->{
-                String path = String.format("%s/%s/%s/%s","/tcc","branch",rootGlobalTransactionId,a);
+            branchIdList.forEach(branchId ->{
+                String path = String.format("%s/%s/%s/%s","/tcc","branch",rootGlobalTransactionId,branchId);
                 final Transaction transactionZk = serviceConfiguration.findByPath(path);
                 transactionZk.setStatus(TransactionStatus.CONFIRM);
                 final int update = serviceConfiguration.updateBranch(transactionZk);
                 log.info("update Branch transaction {},result:{}",transactionZk,update);
-                transactionZk.getParticipants().forEach(p->{
-                    InvocationContext confirmContext = p.getConfirmContext();
-                    remoteInvoke(nettyClient, confirmContext);
+                transactionZk.getParticipants().forEach(participant ->{
+                    InvocationContext confirmContext = participant.getConfirmContext();
+                    try {
+                        remoteInvoke(nettyClient, confirmContext);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        final int updateError = serviceConfiguration.doCreateBranchError(transactionZk);
+                        log.info("update Branch commit error transaction {}, update:{}",transactionZk,updateError);
+                    }
                 });
                 final int delete = serviceConfiguration.deleteBranch(transactionZk);
                 log.info("delete Branch transaction {},result:{}", transactionZk, delete);
@@ -139,7 +145,49 @@ public class Transaction implements Serializable {
     }
 
     /**
-     * 事务回滚
+     * 本地事务提交
+     */
+    public void nativeCommit(Transaction transaction){
+        for (Participant participant : this.participants) {
+            participant.commit();
+        }
+    }
+
+    /**
+     * 远程事务提交
+     */
+    public void remoteCommit(Transaction transaction){
+        final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getApplicationContext().getBean(ServiceConfiguration.class);
+        final NettyClient nettyClient = ApplicationContextUtil.getApplicationContext().getBean(NettyClient.class);
+        final List<String> rootList = serviceConfiguration.findBranchWithError().stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList());
+        if (!rootList.isEmpty()){
+            //全局唯一根事务id
+            final String rootGlobalTransactionId = rootList.get(0);
+            //该根事务下的所有分支事务
+            final List<String> branchIdList = serviceConfiguration.findBranchIdWithError(rootGlobalTransactionId);
+            branchIdList.forEach(branchId ->{
+                String path = String.format("%s/%s/%s/%s","/tcc","branchError",rootGlobalTransactionId,branchId);
+                final Transaction transactionZk = serviceConfiguration.findByPath(path);
+                transactionZk.setStatus(TransactionStatus.CONFIRM);
+                final int update = serviceConfiguration.doUpdateBranchError(transactionZk);
+                log.info("update Branch transaction {},result:{}",transactionZk,update);
+                transactionZk.getParticipants().forEach(participant ->{
+                    InvocationContext confirmContext = participant.getConfirmContext();
+                    try {
+                        remoteInvoke(nettyClient, confirmContext);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        //记录branch commit/error错误的日志
+                        final int updateError = serviceConfiguration.doUpdateBranchError(transactionZk);
+                        log.info("update Branch commit error transaction {}, update:{}",transactionZk,updateError);
+                    }
+                });
+            });
+        }
+    }
+
+    /**
+     * 全体事务回滚
      */
     public void rollback(Transaction transaction) {
         //远程事务回滚
@@ -149,15 +197,21 @@ public class Transaction implements Serializable {
         if (!rootList.isEmpty()){
             String rootGlobalTransactionId = rootList.get(0);
             final List<String> branchIdList = serviceConfiguration.findBranchId(rootGlobalTransactionId);
-            branchIdList.forEach(a->{
-                String path = String.format("%s/%s/%s/%s","/tcc","branch",rootGlobalTransactionId,a);
+            branchIdList.forEach(branchId ->{
+                String path = String.format("%s/%s/%s/%s","/tcc","branch",rootGlobalTransactionId,branchId);
                 final Transaction transactionZk = serviceConfiguration.findByPath(path);
                 transactionZk.setStatus(TransactionStatus.CANCEL);
                 final int update = serviceConfiguration.updateBranch(transactionZk);
                 log.info("update Branch transaction {},result:{}",transactionZk,update);
                 transactionZk.getParticipants().forEach(p->{
                     final InvocationContext cancelContext = p.getCancelContext();
-                    remoteInvoke(nettyClient, cancelContext);
+                    try {
+                        remoteInvoke(nettyClient, cancelContext);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        final int updateError = serviceConfiguration.doCreateBranchError(transactionZk);
+                        log.info("update Branch commit error transaction {}, update:{}",transactionZk,updateError);
+                    }
                 });
                 final int delete = serviceConfiguration.deleteBranch(transactionZk);
                 log.info("delete Branch transaction {},result:{}", transactionZk, delete);
@@ -171,25 +225,65 @@ public class Transaction implements Serializable {
         }
     }
 
-    private void remoteInvoke(NettyClient nettyClient, InvocationContext invocationContext) {
-        MyThreadFactory.getCustomizeExecutor().submit(()->{
-            final RpcRequest rpcRequest = new RpcRequest();
-            rpcRequest.setRequestId(SnowflakeIdWorkerUtil.getInstance().nextId())
-                    .setInterfaceName(invocationContext.getTargetClassName())
-                    .setParameterTypes(invocationContext.getParameterTypes())
-                    .setParam(invocationContext.getParam())
-                    .setMethodName(invocationContext.getMethodName());
-            try {
-                final DefaultFuture defaultFuture = nettyClient.start(rpcRequest);
-                //远程调用超过5s视为远程commit错误
-                final RpcResponse rpcResponse = defaultFuture.get(5000);
-                if (rpcResponse.getResult() != null){
-                    log.info(rpcResponse.getResult().toString());
-                }
-            } catch (Exception e) {
-                throw new InvokeException("remote invoke error",e);
-            }
-        });
+    /**
+     * 本地事务回滚
+     */
+    public void nativeRollback(Transaction transaction){
+        for (Participant participant : participants) {
+            participant.rollback();
+        }
+    }
+
+    /**
+     * 远程事务回滚
+     */
+    public void remoteRollback(Transaction transaction){
+        final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getApplicationContext().getBean(ServiceConfiguration.class);
+        final NettyClient nettyClient = ApplicationContextUtil.getApplicationContext().getBean(NettyClient.class);
+        final List<String> rootList = serviceConfiguration.findBranch().stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList());
+        if (!rootList.isEmpty()){
+            String rootGlobalTransactionId = rootList.get(0);
+            final List<String> branchIdList = serviceConfiguration.findBranchId(rootGlobalTransactionId);
+            branchIdList.forEach(branchId ->{
+                String path = String.format("%s/%s/%s/%s","/tcc","branch",rootGlobalTransactionId,branchId);
+                final Transaction transactionZk = serviceConfiguration.findByPath(path);
+                transactionZk.setStatus(TransactionStatus.CANCEL);
+                final int update = serviceConfiguration.updateBranch(transactionZk);
+                log.info("update Branch transaction {},result:{}",transactionZk,update);
+                transactionZk.getParticipants().forEach(p->{
+                    final InvocationContext cancelContext = p.getCancelContext();
+                    try {
+                        remoteInvoke(nettyClient, cancelContext);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        final int updateError = serviceConfiguration.doCreateBranchError(transactionZk);
+                        log.info("update Branch commit error transaction {}, update:{}",transactionZk,updateError);
+                    }
+                });
+                final int delete = serviceConfiguration.deleteBranch(transactionZk);
+                log.info("delete Branch transaction {},result:{}", transactionZk, delete);
+            });
+            final int rootBranch = serviceConfiguration.deleteRootBranch(rootGlobalTransactionId);
+            log.info("delete Root Branch result:{}",rootBranch);
+        }
+    }
+
+    /**
+     * 远程参与者反射
+     */
+    private void remoteInvoke(NettyClient nettyClient, InvocationContext invocationContext) throws Exception {
+        final RpcRequest rpcRequest = new RpcRequest();
+        rpcRequest.setRequestId(SnowflakeIdWorkerUtil.getInstance().nextId())
+                .setInterfaceName(invocationContext.getTargetClassName())
+                .setParameterTypes(invocationContext.getParameterTypes())
+                .setParam(invocationContext.getParam())
+                .setMethodName(invocationContext.getMethodName());
+        final DefaultFuture defaultFuture = nettyClient.start(rpcRequest);
+        //远程调用超过5s视为远程commit错误
+        final RpcResponse rpcResponse = defaultFuture.get(5000);
+        if (rpcResponse.getResult() != null){
+            log.info(rpcResponse.getResult().toString());
+        }
     }
 
     /**

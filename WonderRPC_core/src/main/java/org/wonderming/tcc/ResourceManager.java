@@ -30,12 +30,26 @@ public interface ResourceManager {
     int update(Transaction transaction);
 
     /**
+     *  删除分支错误事务日志记录
+     * @param transaction Transaction
+     * @return rowEffected
+     */
+    int updateWithBranchError(Transaction transaction);
+
+    /**
      * 删除事务日志记录
      *
      * @param transaction Transaction
      * @return rowEffected
      */
     int delete(Transaction transaction);
+
+    /**
+     * 删除分支错误事务日志记录
+     * @param transaction Transaction
+     * @return rowEffected
+     */
+    int deleteWithBranchError(Transaction transaction);
 
     /**
      * 根据Xid获取事务日志记录
@@ -52,4 +66,12 @@ public interface ResourceManager {
      * @return List<Transaction>
      */
     List<Transaction> doFindAllUnmodified(Date date);
+
+    /**
+     * 获取分支confirm cancel超过持续时间的异常事务
+     *
+     * @param date Date
+     * @return List<Transaction>
+     */
+    List<Transaction> doFindAllUnmodifiedWithBranchError(Date date);
 }

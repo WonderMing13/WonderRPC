@@ -101,6 +101,7 @@
                 <version>${lang3.version}</version>
             </dependency>
 
+            <!--数据库相关-->
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-boot-starter</artifactId>

@@ -17,11 +17,11 @@ public class ProviderOneTestServiceImpl implements ProviderOneTestService {
     public String test(TransactionContext transactionContext) {
         System.out.println("xx");
         return "xjx";
-//        throw new RuntimeException("错误");
     }
 
     public void confirmTest(TransactionContext transactionContext){
         System.out.println("执行事务Test确认方法");
+        throw new RuntimeException("错误");
     }
 
     public String cancelTest(TransactionContext transactionContext){

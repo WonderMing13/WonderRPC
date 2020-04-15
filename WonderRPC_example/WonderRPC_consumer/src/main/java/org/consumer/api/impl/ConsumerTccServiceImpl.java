@@ -27,6 +27,9 @@ public class ConsumerTccServiceImpl implements ConsumerTccService {
     @Resource
     private IMerchantInfoService merchantInfoService;
 
+    /**
+     * 测试TCC分布式事务
+     */
     @Override
     @TccTransaction(confirmMethod = "confirmTcc",cancelMethod = "cancelTcc")
     public String testTcc() {
@@ -46,7 +49,9 @@ public class ConsumerTccServiceImpl implements ConsumerTccService {
         return "ok";
     }
 
-
+    /**
+     * 测试本地Spring事务的传播属性
+     */
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW,rollbackFor = Exception.class)
     public void testTransaction() {
