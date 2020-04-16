@@ -39,6 +39,11 @@ public class DefaultResourceManager implements ResourceManager {
     }
 
     @Override
+    public int updateWithRootError(Transaction transaction) {
+        return getServiceConfiguration().doUpdateRootError(transaction);
+    }
+
+    @Override
     public int delete(Transaction transaction) {
         return getServiceConfiguration().doDelete(transaction);
     }
@@ -46,6 +51,11 @@ public class DefaultResourceManager implements ResourceManager {
     @Override
     public int deleteWithBranchError(Transaction transaction) {
         return getServiceConfiguration().doDeleteWithBranchError(transaction);
+    }
+
+    @Override
+    public int deleteWithRootError(Transaction transaction) {
+        return getServiceConfiguration().doDeleteWithRootError(transaction);
     }
 
     @Override

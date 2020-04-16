@@ -30,11 +30,18 @@ public interface ResourceManager {
     int update(Transaction transaction);
 
     /**
-     *  删除分支错误事务日志记录
+     *  分支错误事务日志记录
      * @param transaction Transaction
      * @return rowEffected
      */
     int updateWithBranchError(Transaction transaction);
+
+    /**
+     * 更新主commit/error错误
+     * @param transaction Transaction
+     * @return rowEffected
+     */
+    int updateWithRootError(Transaction transaction);
 
     /**
      * 删除事务日志记录
@@ -50,6 +57,8 @@ public interface ResourceManager {
      * @return rowEffected
      */
     int deleteWithBranchError(Transaction transaction);
+
+    int deleteWithRootError(Transaction transaction);
 
     /**
      * 根据Xid获取事务日志记录

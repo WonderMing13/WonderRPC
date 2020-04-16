@@ -14,7 +14,7 @@ public class ProviderTestServiceImpl implements ProviderTestService {
     @Override
     @TccTransaction(confirmMethod = "confirmHello",cancelMethod = "cancelHello",type = MethodType.PROVIDER)
     public String test(TransactionContext transactionContext) {
-        return "hjp";
+        throw new RuntimeException("error");
     }
 
     public void confirmHello(TransactionContext transactionContext){

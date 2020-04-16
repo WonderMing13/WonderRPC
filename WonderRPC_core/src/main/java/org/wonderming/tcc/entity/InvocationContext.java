@@ -36,15 +36,11 @@ public class InvocationContext implements Serializable {
     /**
      * 执行提交或者回滚动作
      */
-    void invoke(){
-        try {
-            final Class<?> targetClass = Class.forName(targetClassName);
-            final Object bean = ApplicationContextUtil.getApplicationContext().getBean(targetClass);
-            final Class<?> aClass = bean.getClass();
-            final Method method = aClass.getMethod(methodName, parameterTypes);
-            method.invoke(bean,param);
-        } catch (Exception e) {
-            throw new InvokeException("local invoke error",e);
-        }
+    void invoke() throws Exception{
+        final Class<?> targetClass = Class.forName(targetClassName);
+        final Object bean = ApplicationContextUtil.getApplicationContext().getBean(targetClass);
+        final Class<?> aClass = bean.getClass();
+        final Method method = aClass.getMethod(methodName, parameterTypes);
+        method.invoke(bean,param);
     }
 }

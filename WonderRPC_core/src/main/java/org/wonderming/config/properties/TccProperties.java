@@ -17,7 +17,7 @@ public class TccProperties {
     /**
      * 定时任务重试最多次数
      */
-    private int maxRetryCount = 5;
+    private int maxRetryCount = 3;
     /**
      * 定时任务执行间隔时间
      */

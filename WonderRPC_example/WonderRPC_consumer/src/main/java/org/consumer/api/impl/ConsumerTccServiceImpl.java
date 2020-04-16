@@ -42,6 +42,7 @@ public class ConsumerTccServiceImpl implements ConsumerTccService {
 
     public void confirmTcc(){
         System.out.println("根事务的TCC执行成功");
+//        throw new RuntimeException("error");
     }
 
     public String cancelTcc(){

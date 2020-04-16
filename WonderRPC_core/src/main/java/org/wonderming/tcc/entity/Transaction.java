@@ -140,7 +140,13 @@ public class Transaction implements Serializable {
         }
         //本地事务提交
         for (Participant participant : this.participants) {
-            participant.commit();
+            try {
+                participant.commit();
+            } catch (Exception e) {
+                e.printStackTrace();
+                final int updateError = serviceConfiguration.doCreateRootError(transaction);
+                log.info("update Branch commit error transaction {}, update:{}",transaction,updateError);
+            }
         }
     }
 
@@ -148,8 +154,16 @@ public class Transaction implements Serializable {
      * 本地事务提交
      */
     public void nativeCommit(Transaction transaction){
+        final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getApplicationContext().getBean(ServiceConfiguration.class);
         for (Participant participant : this.participants) {
-            participant.commit();
+            try {
+                participant.commit();
+                serviceConfiguration.doDeleteWithRootError(transaction);
+            } catch (Exception e) {
+                e.printStackTrace();
+                final int updateError = serviceConfiguration.doCreateRootError(transaction);
+                log.info("update Branch commit error transaction {}, update:{}",transaction,updateError);
+            }
         }
     }
 
@@ -175,6 +189,7 @@ public class Transaction implements Serializable {
                     InvocationContext confirmContext = participant.getConfirmContext();
                     try {
                         remoteInvoke(nettyClient, confirmContext);
+                        serviceConfiguration.doDeleteWithBranchError(transactionZk);
                     } catch (Exception e) {
                         e.printStackTrace();
                         //记录branch commit/error错误的日志
@@ -221,7 +236,13 @@ public class Transaction implements Serializable {
         }
         //本地事务回滚
         for (Participant participant : participants) {
-            participant.rollback();
+            try {
+                participant.rollback();
+            } catch (Exception e) {
+                e.printStackTrace();
+                final int updateError = serviceConfiguration.doCreateRootError(transaction);
+                log.info("update Branch commit error transaction {}, update:{}",transaction,updateError);
+            }
         }
     }
 
@@ -229,8 +250,16 @@ public class Transaction implements Serializable {
      * 本地事务回滚
      */
     public void nativeRollback(Transaction transaction){
+        final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getApplicationContext().getBean(ServiceConfiguration.class);
         for (Participant participant : participants) {
-            participant.rollback();
+            try {
+                participant.rollback();
+                serviceConfiguration.doDeleteWithRootError(transaction);
+            } catch (Exception e) {
+                e.printStackTrace();
+                final int updateError = serviceConfiguration.doCreateRootError(transaction);
+                log.info("update Branch commit error transaction {}, update:{}",transaction,updateError);
+            }
         }
     }
 
@@ -240,31 +269,28 @@ public class Transaction implements Serializable {
     public void remoteRollback(Transaction transaction){
         final ServiceConfiguration serviceConfiguration = ApplicationContextUtil.getApplicationContext().getBean(ServiceConfiguration.class);
         final NettyClient nettyClient = ApplicationContextUtil.getApplicationContext().getBean(NettyClient.class);
-        final List<String> rootList = serviceConfiguration.findBranch().stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList());
+        final List<String> rootList = serviceConfiguration.findBranchWithError().stream().filter(s -> s.equals(new String(transaction.xid.getGlobalTransactionId()))).collect(Collectors.toList());
         if (!rootList.isEmpty()){
             String rootGlobalTransactionId = rootList.get(0);
-            final List<String> branchIdList = serviceConfiguration.findBranchId(rootGlobalTransactionId);
+            final List<String> branchIdList = serviceConfiguration.findBranchIdWithError(rootGlobalTransactionId);
             branchIdList.forEach(branchId ->{
-                String path = String.format("%s/%s/%s/%s","/tcc","branch",rootGlobalTransactionId,branchId);
+                String path = String.format("%s/%s/%s/%s","/tcc","branchError",rootGlobalTransactionId,branchId);
                 final Transaction transactionZk = serviceConfiguration.findByPath(path);
                 transactionZk.setStatus(TransactionStatus.CANCEL);
-                final int update = serviceConfiguration.updateBranch(transactionZk);
+                final int update = serviceConfiguration.doUpdateBranchError(transactionZk);
                 log.info("update Branch transaction {},result:{}",transactionZk,update);
                 transactionZk.getParticipants().forEach(p->{
                     final InvocationContext cancelContext = p.getCancelContext();
                     try {
                         remoteInvoke(nettyClient, cancelContext);
+                        serviceConfiguration.doDeleteWithBranchError(transactionZk);
                     } catch (Exception e) {
                         e.printStackTrace();
-                        final int updateError = serviceConfiguration.doCreateBranchError(transactionZk);
+                        final int updateError = serviceConfiguration.doUpdateBranchError(transactionZk);
                         log.info("update Branch commit error transaction {}, update:{}",transactionZk,updateError);
                     }
                 });
-                final int delete = serviceConfiguration.deleteBranch(transactionZk);
-                log.info("delete Branch transaction {},result:{}", transactionZk, delete);
             });
-            final int rootBranch = serviceConfiguration.deleteRootBranch(rootGlobalTransactionId);
-            log.info("delete Root Branch result:{}",rootBranch);
         }
     }
 
