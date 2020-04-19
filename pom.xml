@@ -18,7 +18,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
         <lombok.version>1.18.2</lombok.version>
-        <zookeeper.version>3.4.10</zookeeper.version>
+        <zookeeper.version>3.4.14</zookeeper.version>
         <netty.version>4.1.32.Final</netty.version>
         <curator.version>2.12.0</curator.version>
         <protostuff.version>1.5.9</protostuff.version>
