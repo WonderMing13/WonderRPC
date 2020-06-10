@@ -38,8 +38,10 @@ public class WonderRpcDecoder extends ByteToMessageDecoder {
             return;
         }
         byte[] data = new byte[dataLength];
+        //缓冲区读进字节数组
         byteBuf.readBytes(data);
-        Object obj = SerializerEngine.deserialize(data, genericClass,SerializerEnum.JavaSerializer);
+        //反序列化
+        Object obj = SerializerEngine.deserialize(data, genericClass,SerializerEnum.ProtoStuffSerializer);
         list.add(obj);
     }
 }

@@ -69,8 +69,10 @@ public class NettyServer {
                                     .addLast(new NettyServerHandler())
                                     .addLast(new WonderRpcEncoder(RpcResponse.class));
                         }
-                    }).option(ChannelOption.SO_BACKLOG, 128)
+                        //BACKLOG用于构造服务端套接字ServerSocket对象，标识当服务器请求处理线程全满时，用于临时存放已完成三次握手的请求的队列的最大长度。如果未设置或所设置的值小于1，Java将使用默认值50。
+                    }).option(ChannelOption.SO_BACKLOG, 1024)
                     .childOption(ChannelOption.TCP_NODELAY, true)
+                    //是否启用心跳保活机制。在双方TCP套接字建立连接后（即都进入ESTABLISHED状态）并且在两个小时左右上层没有任何数据传输的情况下，这套机制才会被激活。
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
             final InetSocketAddress inetSocketAddress = new InetSocketAddress(nettyServerProperties.getHost(), nettyServerProperties.getPort());
             //同步启动，RPC服务器启动完毕后才执行后续代码

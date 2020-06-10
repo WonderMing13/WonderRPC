@@ -38,7 +38,7 @@ public class WonderRpcEncoder extends MessageToByteEncoder<Object> {
         //编码是否为传入对象的实例
         if (genericClass.isInstance(o)){
             //序列化要传输的数据
-            bytes = SerializerEngine.serialize(o, SerializerEnum.JavaSerializer);
+            bytes = SerializerEngine.serialize(o, SerializerEnum.ProtoStuffSerializer);
             //先在消息头将消息长度写入
             byteBuf.writeInt(bytes.length);
             //在消息体中包含发送的数据

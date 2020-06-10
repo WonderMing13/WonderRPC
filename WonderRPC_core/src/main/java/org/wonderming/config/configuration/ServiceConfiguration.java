@@ -228,7 +228,7 @@ public class ServiceConfiguration {
             curatorFramework.create()
                             .creatingParentsIfNeeded()
                             .withMode(CreateMode.PERSISTENT)
-                            .forPath(path, SerializerEngine.serialize(transaction, SerializerEnum.JavaSerializer));
+                            .forPath(path, SerializerEngine.serialize(transaction, SerializerEnum.ProtoStuffSerializer));
         } catch (KeeperException.NodeExistsException node) {
             log.info("TCC Path already Exist");
         } catch(Exception e) {
@@ -246,7 +246,7 @@ public class ServiceConfiguration {
             curatorFramework.create()
                             .creatingParentsIfNeeded()
                             .withMode(CreateMode.PERSISTENT)
-                            .forPath(branchError,SerializerEngine.serialize(transaction,SerializerEnum.JavaSerializer));
+                            .forPath(branchError,SerializerEngine.serialize(transaction,SerializerEnum.ProtoStuffSerializer));
         } catch (KeeperException.NodeExistsException node) {
             log.info("TCC Path already Exist");
         } catch(Exception e) {
@@ -264,7 +264,7 @@ public class ServiceConfiguration {
             curatorFramework.create()
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.PERSISTENT)
-                    .forPath(branchError,SerializerEngine.serialize(transaction,SerializerEnum.JavaSerializer));
+                    .forPath(branchError,SerializerEngine.serialize(transaction,SerializerEnum.ProtoStuffSerializer));
         } catch (KeeperException.NodeExistsException node) {
             log.info("TCC Path already Exist");
         } catch(Exception e) {
@@ -287,7 +287,7 @@ public class ServiceConfiguration {
             //version不一样时会报错
             curatorFramework.setData()
                             .withVersion(transaction.getVersion() - 2)
-                            .forPath(path,SerializerEngine.serialize(transaction,SerializerEnum.JavaSerializer));
+                            .forPath(path,SerializerEngine.serialize(transaction,SerializerEnum.ProtoStuffSerializer));
             return SUCCESS;
         } catch (KeeperException.BadVersionException version) {
             throw new OptimisticLockException("OptimisticLock Bad Version");
@@ -304,7 +304,7 @@ public class ServiceConfiguration {
             //version不一样时会报错
             curatorFramework.setData()
                     .withVersion(transaction.getVersion() - 4)
-                    .forPath(path,SerializerEngine.serialize(transaction,SerializerEnum.JavaSerializer));
+                    .forPath(path,SerializerEngine.serialize(transaction,SerializerEnum.ProtoStuffSerializer));
             return SUCCESS;
         } catch (KeeperException.BadVersionException version) {
             throw new OptimisticLockException("OptimisticLock Bad Version");
@@ -321,7 +321,7 @@ public class ServiceConfiguration {
             //version不一样时会报错
                 curatorFramework.setData()
                         .withVersion(transaction.getVersion() - 4)
-                        .forPath(path,SerializerEngine.serialize(transaction,SerializerEnum.JavaSerializer));
+                        .forPath(path,SerializerEngine.serialize(transaction,SerializerEnum.ProtoStuffSerializer));
             return SUCCESS;
         } catch (KeeperException.BadVersionException version) {
             throw new OptimisticLockException("OptimisticLock Bad Version");
@@ -344,7 +344,7 @@ public class ServiceConfiguration {
             //version不一样时会报错
             curatorFramework.setData()
                     .withVersion(transaction.getVersion() - 2)
-                    .forPath(path,SerializerEngine.serialize(transaction,SerializerEnum.JavaSerializer));
+                    .forPath(path,SerializerEngine.serialize(transaction,SerializerEnum.ProtoStuffSerializer));
             return SUCCESS;
         } catch (KeeperException.BadVersionException version) {
             throw new OptimisticLockException("OptimisticLock Bad Version");
@@ -406,7 +406,7 @@ public class ServiceConfiguration {
             String path = getTccXidPath(transaction.getXid());
             byte[] result = curatorFramework.getData().forPath(path);
             if(result!=null){
-                return SerializerEngine.deserialize(result,Transaction.class,SerializerEnum.JavaSerializer);
+                return SerializerEngine.deserialize(result,Transaction.class,SerializerEnum.ProtoStuffSerializer);
             }
             return null;
         } catch (Exception e) {
@@ -525,7 +525,7 @@ public class ServiceConfiguration {
     public Transaction findByPath(String path){
         try {
             byte[] result = curatorFramework.getData().forPath(path);
-            return result != null ? SerializerEngine.deserialize(result,Transaction.class,SerializerEnum.JavaSerializer) : null;
+            return result != null ? SerializerEngine.deserialize(result,Transaction.class,SerializerEnum.ProtoStuffSerializer) : null;
         } catch (Exception e) {
             throw new TccTransactionException("Tcc Exception",e);
         }
@@ -583,7 +583,7 @@ public class ServiceConfiguration {
             transaction.updateVersion();
             curatorFramework.setData()
                     .withVersion(transaction.getVersion() - 2)
-                    .forPath(String.format("%s/%s/%s/%s",TCC_PATH,"branch",new String(transaction.getXid().getGlobalTransactionId()),new String(transaction.getXid().getBranchQualifier())),SerializerEngine.serialize(transaction,SerializerEnum.JavaSerializer));
+                    .forPath(String.format("%s/%s/%s/%s",TCC_PATH,"branch",new String(transaction.getXid().getGlobalTransactionId()),new String(transaction.getXid().getBranchQualifier())),SerializerEngine.serialize(transaction,SerializerEnum.ProtoStuffSerializer));
             return SUCCESS;
         } catch (KeeperException.BadVersionException version) {
             throw new OptimisticLockException("OptimisticLock Bad Version");
